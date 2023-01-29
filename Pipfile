@@ -6,6 +6,9 @@ name = "pypi"
 [packages]
 dash = "*"
 pandas = "*"
+faker = "*"
+argparse = "*"
+pathlib = "*"
 
 [dev-packages]
 
