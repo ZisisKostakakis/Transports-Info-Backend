@@ -9,6 +9,7 @@ pandas = "*"
 faker = "*"
 argparse = "*"
 pathlib = "*"
+dash-bootstrap-components = "*"
 
 [dev-packages]
 
