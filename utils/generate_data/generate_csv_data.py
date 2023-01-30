@@ -3,11 +3,16 @@ import argparse
 import sys
 import os
 from faker import Faker
-from utils.common_vars import USER_DIRECTORY, FLIGHTS_DIRECTORY
+from utils.common_vars import USER_DIRECTORY, DATA_DIRECTORY, FLIGHTS, BUS, TRAIN
 
-
-def generate_flights_csv(generation_number, verbose):
+transportation_type_list = [FLIGHTS, BUS, TRAIN]
+def generate_csv_data(generation_number, transportation_type, verbose):
     try:
+        if transportation_type not in transportation_type_list:
+            if verbose:
+                msg = 'Error in {} - Invalid transportation type'.format(transportation_type)
+                print(msg)
+            return False
         fake = Faker()
         Faker.seed(0)
         
@@ -36,10 +41,12 @@ def generate_flights_csv(generation_number, verbose):
                         from_date, to_date, flight_number, 
                         departure, arrival, economy, business, first_class])
 
-        if not os.path.exists(FLIGHTS_DIRECTORY):
-            os.makedirs(FLIGHTS_DIRECTORY)      
-        print(FLIGHTS_DIRECTORY)  
-        flights_directory = os.path.join(FLIGHTS_DIRECTORY, 'flights.csv')
+        if not os.path.exists(DATA_DIRECTORY):
+            os.makedirs(DATA_DIRECTORY)      
+        if verbose:
+            msg=DATA_DIRECTORY
+            print(msg)
+        flights_directory = os.path.join(DATA_DIRECTORY, f'{transportation_type}.csv')
         with open(flights_directory, 'w', newline='', encoding='UTF-8') as file:
             writer = csv.writer(file)
             writer.writerow(header)
@@ -47,26 +54,31 @@ def generate_flights_csv(generation_number, verbose):
                 
     except Exception as e:
         if verbose:
-            msg = 'Error in generate_flights_csv() - {}'.format(e)
+            msg = 'Error in generating the {} - {}'.format(transportation_type, e)
             print(msg)
         return False
     return True
 
 def main():
     (generation_number,
+     transportation_type,
      verbose) = check_args(sys.argv[1:])
 
     msg = (f' generation_number: {generation_number}\n'
+           f' transportation_type: {transportation_type}\n'
            f' verbose: {verbose}\n')  
     if verbose: 
         print(msg)
-    success = generate_flights_csv(int(generation_number), verbose)
+    success = generate_csv_data(int(generation_number), transportation_type, verbose)
     if success:        
-        print(f'flights.csv has successful been generated')
+        if verbose:
+            msg = 'Successfully generated the {}.csv file'.format(transportation_type)
+            print(msg)
     else:
         if verbose:
-            print(f'flights.csv has failed generating')
-
+            msg='Failed to generate the {}.csv file'.format(transportation_type)
+            print(msg)
+            
     return 0
    
 def check_args(args=None):
@@ -79,6 +91,13 @@ def check_args(args=None):
         default='default')
     
     parser.add_argument(
+        "-type", "--transportation_type",
+        help="Enter the transportation type. Valid types are: {FLIGHTS}, {BUS}, {TRAIN}}",
+        required=False,
+        default='flights'
+    )
+    
+    parser.add_argument(
         "-v", "--verbose",
         help="Enable verbosity",
         required=False,
@@ -87,6 +106,7 @@ def check_args(args=None):
 
     cmd_line_args = parser.parse_args(args)
     return (cmd_line_args.generation_number,
+            cmd_line_args.transportation_type,
             cmd_line_args.verbose
             )
 
