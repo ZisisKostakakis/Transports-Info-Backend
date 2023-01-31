@@ -3,6 +3,7 @@
 
 import pandas as pd
 import dash_bootstrap_components as dbc
+import flask 
 from dash import Dash, html, dcc, Output, Input
 from utils.common_vars import FLIGHTS, BUS, TRAIN
 from utils.get_csv_data import get_csv_data
@@ -22,7 +23,9 @@ def update_button_clicks(dropdown_value):
 def update_transport_options(transportation_type):
     return update_transport_list(transportation_type)
 
-app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP], suppress_callback_exceptions=True)
+server = flask.Flask(__name__)
+app = Dash(__name__, server=server, external_stylesheets=[dbc.themes.BOOTSTRAP],
+           suppress_callback_exceptions=True, prevent_initial_callbacks=True)
 
 app.layout = html.Div([
     dbc.Row([
@@ -56,6 +59,6 @@ app.callback(Output('submit-button', 'n_clicks'),
 app.callback(Output('dropdown', 'options'),
              Input('checkbox', 'value'))(update_transport_options)
 
-# Debug is True, so hot-reloading is enabled
-if __name__ == '__main__':
-    app.run_server(port=5000,debug=False)
+# Debug is False, hot-reloading is disabled
+app.run_server(port=5000,debug=False)
+
