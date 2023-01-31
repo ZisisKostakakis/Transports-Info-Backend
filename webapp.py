@@ -60,5 +60,5 @@ app.callback(Output('dropdown', 'options'),
              Input('checkbox', 'value'))(update_transport_options)
 
 # Debug is False, hot-reloading is disabled
-app.run_server(port=5000,debug=False)
+app.run_server(port=5001,debug=False)
 
