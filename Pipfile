@@ -12,6 +12,7 @@ pathlib = "*"
 dash-bootstrap-components = "*"
 flask = "*"
 numpy = "*"
+gunicorn = "*"
 
 [dev-packages]
 
