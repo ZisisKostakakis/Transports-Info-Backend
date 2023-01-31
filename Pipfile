@@ -11,6 +11,7 @@ argparse = "*"
 pathlib = "*"
 dash-bootstrap-components = "*"
 flask = "*"
+numpy = "*"
 
 [dev-packages]
 
