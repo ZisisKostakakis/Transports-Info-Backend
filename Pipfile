@@ -13,6 +13,7 @@ dash-bootstrap-components = "*"
 flask = "*"
 numpy = "*"
 gunicorn = "*"
+boto3 = "*"
 
 [dev-packages]
 
