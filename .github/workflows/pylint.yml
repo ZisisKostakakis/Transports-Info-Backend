@@ -22,10 +22,11 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install pylint
+        pip install pipenv
+    - name: Install packages with pipenv
+      run: |
+        pipenv install
     - name: Analysing the code with pylint
       run: |
         echo "threshold = ${{ env.THRESHOLD }}" > pylint.cfg
-        pylint --rcfile=pylint.cfg $(git ls-files '*.py')
-      
-
+        pipenv run pylint --rcfile=pylint.cfg $(git ls-files '*.py')
