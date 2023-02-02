@@ -26,10 +26,7 @@ jobs:
       - name: Install packages with pipenv
         run: |
           pipenv install
-      - name: Activating shell
-        run: |
-          pipenv shell
       - name: Analysing the code with pylint
         run: |
           echo "threshold = 5.5" > pylint.cfg
-          pylint --rcfile=pylint.cfg --ignore=utils/common_funcs.py,utils/common_vars.py $(git ls-files '*.py')
+          pipenv run pylint --rcfile=pylint.cfg --ignore=utils/common_funcs.py,utils/common_vars.py $(git ls-files '*.py')
