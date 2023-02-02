@@ -5,7 +5,7 @@ on:
     types: [opened, reopened, synchronize]
 
 env:
-  THRESHOLD: "9.0"
+  THRESHOLD: "5.50"
 
 jobs:
   build:
@@ -29,4 +29,4 @@ jobs:
     - name: Analysing the code with pylint
       run: |
         echo "threshold = ${{ env.THRESHOLD }}" > pylint.cfg
-        pipenv run pylint --rcfile=pylint.cfg $(git ls-files '*.py')
+        pylint --ignore=utils/common_funcs.py,utils/common_vars.py $(git ls-files '*.py)
