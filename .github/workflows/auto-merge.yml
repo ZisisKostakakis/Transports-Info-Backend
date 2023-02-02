@@ -1,0 +1,30 @@
+name: Auto-merge PR
+
+on:
+  pull_request:
+    types: [closed]
+
+jobs:
+  merge:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Check if all checks have passed
+      run: |
+        if [ "${GITHUB_EVENT_NAME}" == "pull_request" ] && [ "${GITHUB_EVENT_ACTION}" == "closed" ] && [ "${GITHUB_EVENT_PULL_REQUEST_MERGED}" == "false" ]; then
+          # Fetch repository and ref information
+          git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/$GITHUB_REPOSITORY.git
+          git fetch origin $GITHUB_HEAD_REF
+          git checkout $GITHUB_HEAD_REF
+
+          # Check if all checks have passed
+          STATUSES_URL=$(jq '.pull_request.statuses_url' $GITHUB_EVENT_PATH)
+          STATUSES=$(curl -s $STATUSES_URL)
+          CHECKS_PASSED=$(echo $STATUSES | jq '[ .[] | select(.state == "success") ]')
+          CHECKS_TOTAL=$(echo $STATUSES | jq '[ .[] ]')
+
+          # Merge if all checks have passed
+          if [ "$(echo $CHECKS_PASSED | jq '. | length')" == "$(echo $CHECKS_TOTAL | jq '. | length')" ]; then
+            git merge $GITHUB_BASE_REF --no-edit
+            git push origin $GITHUB_HEAD_REF
+          fi
+        fi
