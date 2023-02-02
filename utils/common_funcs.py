@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-from common_vars import *
 import boto3
 
 
@@ -61,12 +60,12 @@ def get_ddb_object(ddb_client, table_name, key):
 
 
 def write_ddb_object(ddb_client, table_name, data):
-    for index, row in data.iterrows():
+    for row in data.iterrows():
         item = {col: {'S': str(value)} for col, value in row.items()}
         ddb_client.put_item(TableName=table_name, Item=item)
 
 
-def write_object_to_both_s3_and_ddb(bucket_name, object_name, data, table_name, key):
+def write_object_to_both_s3_and_ddb(bucket_name, object_name, data, table_name, key, s3_client, ddb_client):
     """Write object to S3 and DynamoDB"""
     write_object_to_s3(bucket_name, object_name, data, s3_client)
     write_ddb_object(ddb_client, table_name, key)
@@ -77,7 +76,8 @@ def check_if_object_exists_in_s3(bucket_name, object_name, s3_client):
     try:
         s3_client.head_object(Bucket=bucket_name, Key=object_name)
         return True
-    except:
+    except Exception as e:
+        print(e)
         return False
 
 
@@ -86,7 +86,8 @@ def check_if_object_exists_in_ddb(ddb_client, table_name, key):
     try:
         get_ddb_object(ddb_client, table_name, key)
         return True
-    except:
+    except Exception as e:
+        print(e)
         return False
 
 
@@ -96,7 +97,8 @@ def check_if_object_exists_in_both_s3_and_ddb(bucket_name, object_name, table_na
         s3_client.head_object(Bucket=bucket_name, Key=object_name)
         get_ddb_object(ddb_client, table_name, key)
         return True
-    except:
+    except Exception as e:
+        print(e)
         return False
 
 
@@ -122,11 +124,6 @@ def get_object_from_s3(bucket_name, object_name, s3_client):
     """Get object from S3"""
     obj = s3_client.get_object(Bucket=bucket_name, Key=object_name)
     return obj
-
-
-def write_object_to_s3(bucket_name, object_name, data, s3_client):
-    """Write object to S3"""
-    s3_client.put_object(Bucket=bucket_name, Key=object_name, Body=data)
 
 
 def delete_object_from_s3(bucket_name, object_name, s3_client):
