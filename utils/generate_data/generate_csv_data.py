@@ -116,10 +116,10 @@ def main():
             verboseprint(
                 f'Successfully generated the {transportation_type}.csv file')
             return True
-        else:
-            verboseprint(
-                f'Failed to generate the {transportation_type}.csv file')
-            return False
+
+        verboseprint(
+            f'Failed to generate the {transportation_type}.csv file')
+        return False
 
 
 def check_args(args=None):

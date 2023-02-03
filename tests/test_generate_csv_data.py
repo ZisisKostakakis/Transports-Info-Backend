@@ -33,7 +33,7 @@ def test_generate_csv_data_local_pass():
 def test_generate_csv_data_generation_number_fail():
     # This should fail as the generation number is wrong
     sys.argv = ['main.py', '-g', '-1', '-v', '-type', 'test', '-o']
-    assert main() == False
+    assert main() is False
     with pytest.raises(ValueError) as excinfo:
         sys.argv = ['main.py', '-g', '1.50', '-v', '-type', 'test', '-o']
         main()
