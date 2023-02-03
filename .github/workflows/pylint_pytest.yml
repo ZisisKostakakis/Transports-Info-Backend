@@ -17,8 +17,9 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - name: Set PYTHONPATH
-        run: |
-          echo "::set-env name=PYTHONPATH::home/runner/work/Web-app-python/utils:/home/runner/work/Web-app-python-utils/generate_data:"
+        uses: actions/setup-env@v1
+        with:
+          env: .env
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
