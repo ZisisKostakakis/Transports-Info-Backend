@@ -3,8 +3,7 @@
 import argparse
 import sys
 import pandas as pd
-import csv
-from common_vars import TRAIN, BUS, FLIGHTS, DATA_DIRECTORY
+from common_vars import TRAIN, BUS, FLIGHTS, DATA_DIRECTORY, get_verbose
 
 transportation_type_list = [FLIGHTS, BUS, TRAIN]
 
@@ -12,43 +11,34 @@ transportation_type_list = [FLIGHTS, BUS, TRAIN]
 def get_csv_data(transportation_type, verbose):
     try:
         if transportation_type not in transportation_type_list:
-            if verbose:
-                msg = 'Error in {} - Invalid transportation type'.format(
-                    transportation_type)
-                print(msg)
+            verboseprint(
+                f'Error in {transportation_type} - Invalid transportation type')
             return False, pd.DataFrame()
         df = pd.DataFrame()
         df = pd.read_csv(
             f'{DATA_DIRECTORY}{transportation_type}.csv', encoding='utf-8')
-        if verbose:
-            print(df)
-            return True, df
+        verboseprint(df)
+        return True, df
     except Exception as e:
-        if verbose:
-            msg = 'Error in get_csv_data() - {}'.format(e)
-            print(msg)
+        verboseprint(f'Error in get_csv_data() - {e}')
         return False, df
 
 
 def main():
+    global verboseprint
     (transportation_type,
      verbose) = check_args(sys.argv[1:])
+    verboseprint = print if verbose else lambda *a, **k: None
 
-    msg = (f' transportation_type: {transportation_type}\n'
-           f' verbose: {verbose}\n')
-    if verbose:
-        print(msg)
+    verboseprint((f' transportation_type: {transportation_type}\n'
+                  f' verbose: {verbose}\n'))
 
-    success, _ = get_csv_data(transportation_type, verbose)
-    if success:
-        msg = '{}.csv has successful retrieved'.format(transportation_type)
-        print(msg)
+    if get_csv_data(transportation_type, verbose)[0]:
+        verboseprint(f'{transportation_type}.csv has successful retrieved')
     else:
-        if verbose:
-            msg = 'Failed to retrieve the {}.csv file'.format(
-                transportation_type)
-            print(msg)
-    return
+        verboseprint(f'{transportation_type}.csv has failed to retrieve')
+
+    return 0
 
 
 def check_args(args=None):
@@ -60,12 +50,7 @@ def check_args(args=None):
         required=False,
         default='default')
 
-    parser.add_argument(
-        "-v", "--verbose",
-        help="Enable verbosity",
-        required=False,
-        default=False,
-        action='store_true')
+    get_verbose(parser)
 
     cmd_line_args = parser.parse_args(args)
     return (cmd_line_args.transportation_type,
