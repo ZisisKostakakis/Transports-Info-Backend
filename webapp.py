@@ -8,7 +8,6 @@ from dash import Dash, html, dcc, Output, Input
 from common_vars import FLIGHTS, BUS, TRAIN
 from get_csv_data import get_csv_data
 
-
 def get_transport_list(transportation_type):
     ttype = str(transportation_type)
     ttype = ttype.replace('[', '').replace(']', '').replace("'", '')
