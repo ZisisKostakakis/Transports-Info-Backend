@@ -3,5 +3,6 @@
 utils/generate_data/flights.csv
 utils/generate_data/bus.csv
 utils/generate_data/train.csv
+utils/generate_data/test.csv
 __pycache__/
 utils/__pycache__/

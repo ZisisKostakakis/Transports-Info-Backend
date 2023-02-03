@@ -4,9 +4,6 @@ on:
   pull_request:
     types: [opened, reopened, synchronize]
 
-env:
-  THRESHOLD: "5.5"
-
 jobs:
   build:
     runs-on: ubuntu-latest
