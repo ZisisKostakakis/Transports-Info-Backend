@@ -17,9 +17,8 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - name: Set PYTHONPATH
-        # run: export "PYTHONPATH=home/runner/work/Web-app-python/utils:/home/runner/work/Web-app-python/generate_data:"
         run: |
-          export PYTHONPATH=/home/runner/work/Web-app-python/Web-app-python/utils:/home/runner/work/Web-app-python/Web-app-python/generate_data:
+          export PYTHONPATH=$PYTHONPATH:/home/runner/work/Web-app-python/Web-app-python/utils:/home/runner/work/Web-app-python/Web-app-python/generate_data
           echo $PYTHONPATH
       - name: Install dependencies
         run: |
