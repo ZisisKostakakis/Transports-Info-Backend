@@ -4,9 +4,6 @@ on:
   pull_request:
     types: [opened, reopened, synchronize]
 
-env:
-  THRESHOLD: "5.5"
-
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -28,5 +25,4 @@ jobs:
           pipenv install
       - name: Analysing the code with pylint
         run: |
-          echo "threshold = 5.5" > pylint.cfg
-          pipenv run pylint --rcfile=pylint.cfg --ignore=utils/common_funcs.py,utils/common_vars.py $(git ls-files '*.py')
+          pipenv run pylint --rcfile=pylint.cfg $(git ls-files '*.py') -s true --fail-under=9
