@@ -20,6 +20,11 @@ jobs:
         run: |
           export PYTHONPATH=$PYTHONPATH:/home/runner/work/Web-app-python/Web-app-python/utils:/home/runner/work/Web-app-python/Web-app-python/generate_data
           echo $PYTHONPATH
+        shell: /usr/bin/bash -e {0}
+        env:
+          pythonLocation: /opt/hostedtoolcache/Python/3.9.16/x64
+          LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.9.16/x64/lib
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
