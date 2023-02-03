@@ -33,13 +33,13 @@ def main():
 
     verboseprint((f' transportation_type: {transportation_type}\n'
                   f' verbose: {verbose}\n'))
-
-    if get_csv_data(transportation_type, verbose)[0]:
-        verboseprint(f'{transportation_type}.csv has successful retrieved')
-    else:
-        verboseprint(f'{transportation_type}.csv has failed to retrieve')
-
-    return 0
+    for transportation_type in transportation_type_list:
+        if get_csv_data(transportation_type, verbose)[0]:
+            verboseprint(f'{transportation_type}.csv has successful retrieved')
+        else:
+            verboseprint(f'{transportation_type}.csv has failed to retrieve')
+            return False
+    return True
 
 
 def check_args(args=None):

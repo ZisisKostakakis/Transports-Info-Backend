@@ -1,8 +1,8 @@
 
 .vscode/
-utils/generate_data/flights.csv
-utils/generate_data/bus.csv
-utils/generate_data/train.csv
-utils/generate_data/test.csv
+generate_data/flights.csv
+generate_data/bus.csv
+generate_data/train.csv
+generate_data/test.csv
 __pycache__/
 utils/__pycache__/

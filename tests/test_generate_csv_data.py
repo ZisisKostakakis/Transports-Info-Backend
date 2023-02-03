@@ -1,7 +1,7 @@
 import sys
 import pytest
+# import main from generate_csv_data.py
 from generate_csv_data import main
-#
 
 
 def test_generate_csv_data_aws_pass():
