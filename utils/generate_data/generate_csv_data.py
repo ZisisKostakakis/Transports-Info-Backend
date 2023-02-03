@@ -1,99 +1,93 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-import csv
+from __future__ import print_function
 import argparse
 import sys
 import os
 import pandas as pd
 from faker import Faker
-from common_vars import USER_DIRECTORY, DATA_DIRECTORY, FLIGHTS, BUS, TRAIN
-from common_funcs import get_aws_creds, get_boto3_session, get_s3_client,\
-    read_object_from_s3, write_object_to_s3, get_ddb_client, get_ddb_object, write_ddb_object
+from common_vars import DATA_DIRECTORY, FLIGHTS, BUS, TRAIN, get_verbose
+from common_funcs import get_s3_client, write_object_to_s3, get_ddb_client,\
+    write_ddb_object
 
 transportation_type_list = [FLIGHTS, BUS, TRAIN]
+
+
+def populate_df(generation_number, transportation_type):
+    fake = Faker()
+    type_number = f'{transportation_type}_number'
+    rows = []
+    header = [type_number, 'from_Country', 'to_Country',
+              'from_city', 'to_city',
+              'from_date', 'to_date',
+              'departure', 'arrival',
+              'economy', 'eusiness', 'first_class']
+
+    for _ in range(generation_number):
+        data = {}
+        data['from_country'] = fake.country()
+        data['to_country'] = fake.country()
+        data['from_city'] = fake.city()
+        data['to_city'] = fake.city()
+        data['from_date'] = fake.date_this_decade().strftime('%Y-%m-%d')
+        data['to_date'] = fake.date_this_decade().strftime('%Y-%m-%d')
+        data['flight_number'] = str(fake.numerify(text='F###'))
+        data['departure'] = fake.time(pattern='%H:%M')
+        data['arrival'] = fake.time(pattern='%H:%M')
+        data['economy'] = fake.random_int(min=100, max=1000, step=100)
+        data['business'] = fake.random_int(
+            min=1000, max=2000, step=100)
+        data['first_class'] = fake.random_int(
+            min=2000, max=3000, step=100)
+
+        rows.append([data['flight_number'], data['from_country'], data['to_country'],
+                     data['from_city'], data['to_city'], data['from_date'], data['to_date'],
+                     data['departure'], data['arrival'], data['economy'], data['business'], data['first_class']])
+    return pd.DataFrame(rows, columns=header)
+
+
+def transport_in_list(value):
+    if value not in transportation_type_list:
+        msg = f'Error in {value} - Invalid transportation type'
+        verboseprint(msg)
+        return False
+    return True
 
 
 def generate_csv_data(generation_number, transportation_type, aws_creds, on_aws, bucket, on_ddb, overwrite, verbose):
     if overwrite:
         try:
-            if transportation_type not in transportation_type_list:
-                if verbose:
-                    msg = 'Error in {} - Invalid transportation type'.format(
-                        transportation_type)
-                    print(msg)
+            if not transport_in_list:
                 return False
-            fake = Faker()
-            Faker.seed(0)
-            if transportation_type == FLIGHTS:
-                flight_number = 'Flights_Number'
-            elif transportation_type == BUS:
-                flight_number = 'Bus_Number'
-            elif transportation_type == TRAIN:
-                flight_number = 'Train_Number'
 
-            header = [flight_number, 'From_Country', 'To_Country',
-                      'From_City', 'To_City',
-                      'From_Date', 'To_Date',
-                      'Departure', 'Arrival',
-                      'Economy', 'Business', 'First_Class']
-            rows = []
+            df = populate_df(generation_number, transportation_type)
 
-            for _ in range(generation_number):
-                from_country = fake.country()
-                to_country = fake.country()
-                from_city = fake.city()
-                to_city = fake.city()
-                from_date = fake.date_this_decade().strftime('%Y-%m-%d')
-                to_date = fake.date_this_decade().strftime('%Y-%m-%d')
-                flight_number = str(fake.numerify(text='F###'))
-                departure = fake.time(pattern='%H:%M')
-                arrival = fake.time(pattern='%H:%M')
-                economy = fake.random_int(min=100, max=1000, step=100)
-                business = fake.random_int(min=1000, max=2000, step=100)
-                first_class = fake.random_int(min=2000, max=3000, step=100)
-
-                rows.append([flight_number, from_country, to_country,
-                            from_city, to_city, from_date, to_date,
-                            departure, arrival, economy, business, first_class])
-
-            directory = os.path.join(
-                DATA_DIRECTORY, f'{transportation_type}.csv')
-            df = pd.DataFrame(rows, columns=header)
-
-            if not on_aws or not on_ddb:
+            if not on_aws and not on_ddb:
                 if not os.path.exists(DATA_DIRECTORY):
                     os.makedirs(DATA_DIRECTORY)
-                if verbose:
-                    msg = DATA_DIRECTORY
-                    print(msg)
-                df.to_csv(directory, index=False)
-
-            if on_aws or on_ddb:
+                    verboseprint(f'Directory is: {DATA_DIRECTORY}')
+                df.to_csv(os.path.join(DATA_DIRECTORY,
+                          f'{transportation_type}.csv'), index=False)
+            else:
                 if on_aws:
-                    s3_client = get_s3_client(aws_creds)
-                    write_object_to_s3(
-                        bucket, f'{transportation_type}.csv', df.to_csv(index=False), s3_client)
+                    write_object_to_s3(bucket, f'{transportation_type}.csv', df.to_csv(
+                        index=False), get_s3_client(aws_creds))
                 if on_ddb:
-                    ddb_client = get_ddb_client(aws_creds)
-                    write_ddb_object(
-                        ddb_client, f'webapp-{transportation_type}', df)
-
+                    write_ddb_object(get_ddb_client(aws_creds),
+                                     f'webapp-{transportation_type}', df)
         except Exception as e:
-            if verbose:
-                msg = 'Error in generating the {} - {}'.format(
-                    transportation_type, e)
-                print(msg)
+            verboseprint(
+                f'Error in generating the {transportation_type} - {e}')
             return False
     else:
-        if verbose:
-            msg = 'Error in generating the {} - Overwrite is not enabled'.format(
-                transportation_type)
-            print(msg)
+        verboseprint(
+            f'Error in generating the {transportation_type} - Overwrite is not enabled')
         return False
     return True
 
 
 def main():
+    global verboseprint
     (generation_number,
      transportation_type,
      aws_creds,
@@ -102,29 +96,23 @@ def main():
      on_ddb,
      overwrite,
      verbose) = check_args(sys.argv[1:])
+    verboseprint = print if verbose else lambda *a, **k: None
 
-    msg = (f' ARGUMENTS\n'
-           f' generation_number: {generation_number}\n'
-           f' transportation_type: {transportation_type}\n'
-           f' on_aws: {on_aws}\n'
-           f' bucket: {bucket}\n'
-           f' on_ddb: {on_ddb}\n'
-           f' overwrite: {overwrite}\n'
-           f' verbose: {verbose}\n')
-    if verbose:
-        print(msg)
-    success = generate_csv_data(
-        int(generation_number), transportation_type, aws_creds, on_aws, bucket, on_ddb, overwrite, verbose)
-    if success:
-        if verbose:
-            msg = 'Successfully generated the {}.csv file'.format(
-                transportation_type)
-            print(msg)
+    verboseprint((f' ARGUMENTS\n'
+                  f' generation_number: {generation_number}\n'
+                  f' transportation_type: {transportation_type}\n'
+                  f' on_aws: {on_aws}\n'
+                  f' bucket: {bucket}\n'
+                  f' on_ddb: {on_ddb}\n'
+                  f' overwrite: {overwrite}\n'
+                  f' verbose: {verbose}\n'))
+
+    if generate_csv_data(int(generation_number), transportation_type, aws_creds,
+                         on_aws, bucket, on_ddb, overwrite, verbose):
+        verboseprint(
+            f'Successfully generated the {transportation_type}.csv file')
     else:
-        if verbose:
-            msg = 'Failed to generate the {}.csv file'.format(
-                transportation_type)
-            print(msg)
+        verboseprint(f'Failed to generate the {transportation_type}.csv file')
 
     return 0
 
@@ -183,12 +171,7 @@ def check_args(args=None):
         action='store_true'
     )
 
-    parser.add_argument(
-        "-v", "--verbose",
-        help="Enable verbosity",
-        required=False,
-        default=False,
-        action='store_true')
+    get_verbose(parser)
 
     cmd_line_args = parser.parse_args(args)
     return (cmd_line_args.generation_number,
