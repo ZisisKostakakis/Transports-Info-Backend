@@ -17,7 +17,7 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - name: Set PYTHONPATH
-        uses: actions/setup-env@v1
+        uses: actions/setup-env@v2
         with:
           env: .env
       - name: Install dependencies
