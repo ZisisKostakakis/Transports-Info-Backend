@@ -7,27 +7,27 @@ def test_generate_csv_data_aws_pass():
     # This should pass and creates the csv file and uploads it to S3 and DDB
     sys.argv = ['main.py', '-g', '1', '-v', '-type', 'test',
                 '-onaws', '-onddb', '-u', 'webapp', '-o']
-    assert main() == True
+    assert main() is True
 
 
 def test_generate_csv_data_overwrite_fail():
     # This should fail as the file already exists and overwrite is not enabled
     sys.argv = ['main.py', '-g', '1', '-v', '-type', 'test',
                 '-onaws', '-onddb', '-u', 'webapp']
-    assert main() == False
+    assert main() is False
 
 
 def test_generate_csv_data_type_fail():
     # This should fail as the type is wrong
     sys.argv = ['main.py', '-g', '1', '-v', '-type', 'wrong_type',
                 '-onaws', '-onddb', '-u', 'webapp', '-o']
-    assert main() == False
+    assert main() is False
 
 
 def test_generate_csv_data_local_pass():
     # This should pass and creates the csv file locally
     sys.argv = ['main.py', '-g', '1', '-v', '-type', 'test', '-o']
-    assert main() == True
+    assert main() is True
 
 
 def test_generate_csv_data_generation_number_fail():
