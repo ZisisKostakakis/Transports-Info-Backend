@@ -6,9 +6,9 @@ import sys
 import os
 import pandas as pd
 from faker import Faker
-from common_vars import DATA_DIRECTORY, FLIGHTS, BUS, TRAIN, get_verbose
-from common_funcs import get_s3_client, write_object_to_s3, get_ddb_client,\
-    write_ddb_object
+from common_vars import DATA_DIRECTORY, FLIGHTS, BUS, TRAIN
+from common_funcs import get_s3_client, write_object_to_s3, get_ddb_client, write_ddb_object, \
+    get_verbose, get_on_aws, get_on_ddb, get_transportation_type, get_overwrite, get_aws_profile, get_bucket
 
 transportation_type_list = [FLIGHTS, BUS, TRAIN]
 
@@ -54,7 +54,7 @@ def transport_in_list(value):
     return True
 
 
-def generate_csv_data(generation_number, transportation_type, aws_creds, on_aws, bucket, on_ddb, overwrite, verbose):
+def generate_csv_data(generation_number, transportation_type, aws_creds, on_aws, bucket, on_ddb, overwrite):
     if overwrite:
         try:
             if not transport_in_list:
@@ -67,7 +67,7 @@ def generate_csv_data(generation_number, transportation_type, aws_creds, on_aws,
                     os.makedirs(DATA_DIRECTORY)
                     verboseprint(f'Directory is: {DATA_DIRECTORY}')
                 df.to_csv(os.path.join(DATA_DIRECTORY,
-                          f'{transportation_type}.csv'), index=False)
+                                       f'{transportation_type}.csv'), index=False)
             else:
                 if on_aws:
                     write_object_to_s3(bucket, f'{transportation_type}.csv', df.to_csv(
@@ -77,11 +77,11 @@ def generate_csv_data(generation_number, transportation_type, aws_creds, on_aws,
                                      f'webapp-{transportation_type}', df)
         except Exception as e:
             verboseprint(
-                f'Error in generating the {transportation_type} - {e}')
+                f'Error in generating the {transportation_type}.csv - {e}')
             return False
     else:
         verboseprint(
-            f'Error in generating the {transportation_type} - Overwrite is not enabled')
+            f'Error in generating the {transportation_type}.csv - Overwrite is not enabled')
         return False
     return True
 
@@ -98,6 +98,9 @@ def main():
      verbose) = check_args(sys.argv[1:])
     verboseprint = print if verbose else lambda *a, **k: None
 
+    if int(generation_number) < 1:
+        return False
+
     verboseprint((f' ARGUMENTS\n'
                   f' generation_number: {generation_number}\n'
                   f' transportation_type: {transportation_type}\n'
@@ -107,70 +110,34 @@ def main():
                   f' overwrite: {overwrite}\n'
                   f' verbose: {verbose}\n'))
 
-    if generate_csv_data(int(generation_number), transportation_type, aws_creds,
-                         on_aws, bucket, on_ddb, overwrite, verbose):
-        verboseprint(
-            f'Successfully generated the {transportation_type}.csv file')
-    else:
-        verboseprint(f'Failed to generate the {transportation_type}.csv file')
+    for transport_type in transportation_type:
+        if generate_csv_data(int(generation_number), transport_type, aws_creds,
+                             on_aws, bucket, on_ddb, overwrite):
+            verboseprint(
+                f'Successfully generated the {transportation_type}.csv file')
+            return True
 
-    return 0
+        verboseprint(
+            f'Failed to generate the {transportation_type}.csv file')
+        return False
 
 
 def check_args(args=None):
     """Get command line arguments"""
-    parser = argparse.ArgumentParser(description="Generate flights.csv file")
+    parser = argparse.ArgumentParser(description="Generate csv file/s")
+
     parser.add_argument(
         "-g", "--generation_number",
         help="Enter how many rows of data you want to generate",
         required=True,
         default='default')
 
-    parser.add_argument(
-        "-type", "--transportation_type",
-        help="Enter the transportation type. Valid types are: {flights, bus, train}",
-        required=True,
-        default='flights'
-    )
-
-    parser.add_argument(
-        "-u", "--aws_profile",
-        help="Enter the AWS profile name. Default is 'webapp'",
-        required=False,
-        default='webapp',
-    )
-
-    parser.add_argument(
-        "-onaws", "--on_aws",
-        help="Write the file to AWS S3",
-        required=False,
-        default=False,
-        action='store_true'
-    )
-
-    parser.add_argument(
-        "-b", "--bucket",
-        help="Enter the bucket name. Default is 'web-app-python'",
-        required=False,
-        default='web-app-python',
-    )
-
-    parser.add_argument(
-        "-onddb", "--on_ddb",
-        help="Write the file to AWS DynamoDB.",
-        required=False,
-        default=False,
-        action='store_true'
-    )
-
-    parser.add_argument(
-        "-o", "--overwrite",
-        help="Overwrite the existing file",
-        required=False,
-        default=False,
-        action='store_true'
-    )
-
+    get_transportation_type(parser)
+    get_aws_profile(parser)
+    get_on_aws(parser)
+    get_bucket(parser)
+    get_on_ddb(parser)
+    get_overwrite(parser)
     get_verbose(parser)
 
     cmd_line_args = parser.parse_args(args)

@@ -15,6 +15,7 @@ numpy = "*"
 gunicorn = "*"
 boto3 = "*"
 pylint = "*"
+pytest = "*"
 
 [dev-packages]
 autopep8 = "*"

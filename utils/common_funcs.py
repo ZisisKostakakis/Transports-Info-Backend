@@ -3,6 +3,73 @@
 import boto3
 
 
+def get_verbose(parser):
+    return parser.add_argument(
+        "-v", "--verbose",
+        help="Enable verbosity",
+        required=False,
+        default=False,
+        action='store_true')
+
+
+def get_transportation_type(parser):
+    return parser.add_argument(
+        "-type", "--transportation_type",
+        nargs='*',
+        help="Enter the transportation type. Valid types are: {flights, bus, train}",
+        required=True,
+        default=[]
+    )
+
+
+def get_aws_profile(parser):
+    return parser.add_argument(
+        "-u", "--aws_profile",
+        help="Enter the AWS profile name. Default is 'webapp'",
+        required=False,
+        default='webapp',
+    )
+
+
+def get_on_aws(parser):
+    return parser.add_argument(
+        "-onaws", "--on_aws",
+        help="Write the file to AWS S3",
+        required=False,
+        default=False,
+        action='store_true'
+    )
+
+
+def get_bucket(parser):
+    parser.add_argument(
+        "-b", "--bucket",
+        help="Enter the bucket name. Default is 'web-app-python'",
+        required=False,
+        default='web-app-python',
+    )
+
+
+def get_on_ddb(parser):
+    return parser.add_argument(
+        "-onddb", "--on_ddb",
+        help="Write the file to AWS DynamoDB.",
+        required=False,
+        default=False,
+        action='store_true'
+    )
+
+
+def get_overwrite(parser):
+    return parser.add_argument(
+        "-o", "--overwrite",
+        help="Overwrite the existing file",
+        required=False,
+        default=False,
+        action='store_true'
+    )
+
+
 def get_aws_creds(aws_creds):
     """Get AWS credentials from ~/.aws/credentials file"""
     session = boto3.Session(profile_name=aws_creds)
@@ -61,7 +128,7 @@ def get_ddb_object(ddb_client, table_name, key):
 
 def write_ddb_object(ddb_client, table_name, data):
     for row in data.iterrows():
-        item = {col: {'S': str(value)} for col, value in row.items()}
+        item = {col: {'S': str(value)} for col, value in row[1].items()}
         ddb_client.put_item(TableName=table_name, Item=item)
 
 
