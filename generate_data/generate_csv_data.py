@@ -8,7 +8,7 @@ import pandas as pd
 from faker import Faker
 from common_vars import DATA_DIRECTORY, FLIGHTS, BUS, TRAIN
 from common_funcs import get_s3_client, write_object_to_s3, get_ddb_client, write_ddb_object, \
-    get_verbose, get_on_aws, get_on_ddb, get_transportation_type, get_overwrite, get_aws_profile, get_bucket
+    get_verbose, get_on_aws, get_on_ddb, get_transportation_type, get_overwrite, get_aws_profile, get_bucket, transport_in_list
 
 transportation_type_list = [FLIGHTS, BUS, TRAIN]
 
@@ -44,14 +44,6 @@ def populate_df(generation_number, transportation_type):
                      data['from_city'], data['to_city'], data['from_date'], data['to_date'],
                      data['departure'], data['arrival'], data['economy'], data['business'], data['first_class']])
     return pd.DataFrame(rows, columns=header)
-
-
-def transport_in_list(value):
-    if value not in transportation_type_list:
-        msg = f'Error in {value} - Invalid transportation type'
-        verboseprint(msg)
-        return False
-    return True
 
 
 def generate_csv_data(generation_number, transportation_type, aws_creds, on_aws, bucket, on_ddb, overwrite):
