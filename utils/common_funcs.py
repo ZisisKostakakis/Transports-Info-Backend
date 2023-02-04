@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import boto3
+from common_vars import transportation_type_list
 
 
 def get_verbose(parser):
@@ -191,3 +192,11 @@ def get_list_of_objects_ddb(ddb_client, table_name):
 def delete_object_from_s3(bucket_name, object_name, s3_client):
     """Delete object from S3"""
     s3_client.delete_object(Bucket=bucket_name, Key=object_name)
+
+
+def transport_in_list(value):
+    if value not in transportation_type_list:
+        msg = f'Error in {value} - Invalid transportation type'
+        print(msg)
+        return False
+    return True

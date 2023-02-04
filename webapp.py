@@ -8,10 +8,12 @@ from dash import Dash, html, dcc, Output, Input
 from common_vars import FLIGHTS, BUS, TRAIN
 from get_csv_data import get_csv_data
 
+
 def get_transport_list(transportation_type):
     ttype = str(transportation_type)
     ttype = ttype.replace('[', '').replace(']', '').replace("'", '')
-    transport_list = get_csv_data(ttype, True)[1]['From_Country']
+    transport_list = get_csv_data(
+        ttype, 'webapp', True, 'web-app-python')[1]['From_Country']
     return [{'label': item, 'value': item} for item in transport_list]
 
 
