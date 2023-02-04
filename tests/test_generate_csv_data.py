@@ -3,12 +3,12 @@ import pytest
 # import main from generate_csv_data.py
 from generate_csv_data import main
 
-
-def test_generate_csv_data_aws_pass():
-    # This should pass and creates the csv file and uploads it to S3 and DDB
-    sys.argv = ['main.py', '-g', '1', '-v', '-type', 'test',
-                '-onaws', '-onddb', '-u', 'webapp', '-o']
-    assert main() is True
+# For now its take off as we need to give aws creds to run the tests
+# def test_generate_csv_data_aws_pass():
+#     # This should pass and creates the csv file and uploads it to S3 and DDB
+#     sys.argv = ['main.py', '-g', '1', '-v', '-type', 'test',
+#                 '-onaws', '-onddb', '-u', 'webapp', '-o']
+#     assert main() is True
 
 
 def test_generate_csv_data_overwrite_fail():
