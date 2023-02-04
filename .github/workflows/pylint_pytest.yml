@@ -29,9 +29,9 @@ jobs:
           pipenv install
       - name: Analysing the code with pylint
         run: |
-          deactivate shell
-          pipenv shell
-          pylint --rcfile=pylint.cfg $(git ls-files '*.py') -s true --fail-under=10
+          export PYTHONPATH=$PYTHONPATH:/home/runner/work/Web-app-python/Web-app-python/utils:/home/runner/work/Web-app-python/Web-app-python/generate_data
+          pipenv run pylint --rcfile=pylint.cfg $(git ls-files '*.py') -s true --fail-under=10
       - name: Now running Pytest
         run: |
+          export PYTHONPATH=$PYTHONPATH:/home/runner/work/Web-app-python/Web-app-python/utils:/home/runner/work/Web-app-python/Web-app-python/generate_data
           pipenv run pytest
