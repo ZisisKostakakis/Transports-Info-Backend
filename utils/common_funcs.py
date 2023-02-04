@@ -101,7 +101,8 @@ def get_s3_client(aws_creds):
 
 def read_object_from_s3(bucket_name, object_name, s3_client):
     """Read object from S3 bucket"""
-    obj = s3_client.get_object(Bucket=bucket_name, Key=object_name)
+    obj = s3_client.get_object(Bucket=bucket_name, Key=object_name).get(
+        'Body').read().decode('utf-8')
     return obj
 
 
@@ -185,12 +186,6 @@ def get_list_of_objects_ddb(ddb_client, table_name):
     """Get list of objects in DynamoDB table"""
     response = ddb_client.scan(TableName=table_name)
     return response
-
-
-def get_object_from_s3(bucket_name, object_name, s3_client):
-    """Get object from S3"""
-    obj = s3_client.get_object(Bucket=bucket_name, Key=object_name)
-    return obj
 
 
 def delete_object_from_s3(bucket_name, object_name, s3_client):
