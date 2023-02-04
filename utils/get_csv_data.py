@@ -3,7 +3,8 @@
 import argparse
 import sys
 import pandas as pd
-from common_vars import TRAIN, BUS, FLIGHTS, DATA_DIRECTORY, get_verbose
+from common_vars import TRAIN, BUS, FLIGHTS, DATA_DIRECTORY
+from common_funcs import get_verbose, get_transportation_type
 
 transportation_type_list = [FLIGHTS, BUS, TRAIN]
 
@@ -32,24 +33,20 @@ def main():
 
     verboseprint((f' transportation_type: {transportation_type}\n'
                   f' verbose: {verbose}\n'))
-
-    if get_csv_data(transportation_type, verbose)[0]:
-        verboseprint(f'{transportation_type}.csv has successful retrieved')
-    else:
-        verboseprint(f'{transportation_type}.csv has failed to retrieve')
-
-    return 0
+    for transportation_type in transportation_type_list:
+        if get_csv_data(transportation_type, verbose)[0]:
+            verboseprint(f'{transportation_type}.csv has successful retrieved')
+        else:
+            verboseprint(f'{transportation_type}.csv has failed to retrieve')
+            return False
+    return True
 
 
 def check_args(args=None):
     """Get command line arguments"""
     parser = argparse.ArgumentParser(description="Generate flights.csv file")
-    parser.add_argument(
-        "-type", "--transportation_type",
-        help="Enter the transportation type. Valid types are: {FLIGHTS}, {BUS}, {TRAIN}}",
-        required=False,
-        default='default')
 
+    get_transportation_type(parser)
     get_verbose(parser)
 
     cmd_line_args = parser.parse_args(args)
