@@ -31,7 +31,7 @@ def get_csv_data(transportation_type, aws_profile, on_aws, bucket):
             return False, df
         if on_aws:
             s3_client = get_s3_client(aws_profile)
-            if check_if_object_exists_in_s3(bucket, f'{transportation_type}.csv', s3_client=get_s3_client):
+            if check_if_object_exists_in_s3(bucket, f'{transportation_type}.csv', s3_client=s3_client):
                 verboseprint(
                     f'Object {transportation_type}.csv exists in S3, retrieving from S3...')
                 obj = read_object_from_s3(
