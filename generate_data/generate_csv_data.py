@@ -8,13 +8,14 @@ from typing import Tuple
 import pandas as pd
 from faker import Faker
 from common_vars import DATA_DIRECTORY, FLIGHTS, BUS, TRAIN
-from common_funcs import get_s3_client, write_object_to_s3, get_ddb_client, write_ddb_object, \
+from common_funcs import get_verbose_logger, get_s3_client, write_object_to_s3, get_ddb_client, write_ddb_object, get_logger, \
     get_verbose, get_on_aws, get_on_ddb, get_transportation_type, get_overwrite, get_aws_profile, get_bucket, transport_in_list
 
 transportation_type_list = [FLIGHTS, BUS, TRAIN]
 
 
 def populate_df(generation_number: int, transportation_type: str) -> pd.DataFrame:
+    # TODO: Improve this function so that it can generate better random data
     fake = Faker()
     type_number = f'{transportation_type}_number'
     rows = []
@@ -47,7 +48,9 @@ def populate_df(generation_number: int, transportation_type: str) -> pd.DataFram
     return pd.DataFrame(rows, columns=header)
 
 
-def generate_csv_data(generation_number: int, transportation_type: str, aws_creds: str, on_aws: bool, bucket: str, on_ddb: bool, overwrite: bool) -> bool:
+def generate_csv_data(generation_number: int, transportation_type: str, aws_creds: str,
+                      on_aws: bool, bucket: str, on_ddb: bool, overwrite: bool) -> bool:
+    # TODO: Adjust the overwrite logic so it can work dynamically
     if overwrite:
         try:
             if not transport_in_list:
@@ -59,6 +62,7 @@ def generate_csv_data(generation_number: int, transportation_type: str, aws_cred
                 if not os.path.exists(DATA_DIRECTORY):
                     os.makedirs(DATA_DIRECTORY)
                     verboseprint(f'Directory is: {DATA_DIRECTORY}')
+                    log(f'Directory is: {DATA_DIRECTORY}', 'INFO', logger)
                 df.to_csv(os.path.join(DATA_DIRECTORY,
                                        f'{transportation_type}.csv'), index=False)
             else:
@@ -71,16 +75,20 @@ def generate_csv_data(generation_number: int, transportation_type: str, aws_cred
         except Exception as e:
             verboseprint(
                 f'Error in generating the {transportation_type}.csv - {e}')
+            log(f'Error in generating the {transportation_type}.csv - {e}', 'ERROR', logger)
             return False
     else:
         verboseprint(
             f'Error in generating the {transportation_type}.csv - Overwrite is not enabled')
+        log(f'Error in generating the {transportation_type}.csv - Overwrite is not enabled', 'ERROR', logger)
         return False
     return True
 
 
 def main():
     global verboseprint
+    global log
+    global logger
     (generation_number,
      transportation_type,
      aws_creds,
@@ -88,8 +96,10 @@ def main():
      bucket,
      on_ddb,
      overwrite,
-     verbose) = check_args(sys.argv[1:])
-    verboseprint = print if verbose else lambda *a, **k: None
+     verbose,
+     logger) = check_args(sys.argv[1:])
+
+    verboseprint, log, logger = get_verbose_logger(verbose, logger)
 
     if int(generation_number) < 1:
         return False
@@ -101,21 +111,25 @@ def main():
                   f' bucket: {bucket}\n'
                   f' on_ddb: {on_ddb}\n'
                   f' overwrite: {overwrite}\n'
-                  f' verbose: {verbose}\n'))
+                  f' verbose: {verbose}\n'
+                  f' logger: {logger}\n'))
 
     for transport_type in transportation_type:
         if generate_csv_data(int(generation_number), transport_type, aws_creds,
                              on_aws, bucket, on_ddb, overwrite):
             verboseprint(
-                f'Successfully generated the {transportation_type}.csv file')
+                f'Successfully generated the {transport_type}.csv file')
+            log(f'Successfully generated the {transport_type}.csv file', 'INFO', logger)
+
             return True
 
         verboseprint(
-            f'Failed to generate the {transportation_type}.csv file')
+            f'Failed to generate the {transport_type}.csv file')
+        log(f'Failed to generate the {transport_type}.csv file', 'ERROR', logger)
         return False
 
 
-def check_args(args=None) -> Tuple[str, str, str, bool, str, bool, bool, bool]:
+def check_args(args=None) -> Tuple[str, str, str, bool, str, bool, bool, bool, bool]:
     """Get command line arguments"""
     parser = argparse.ArgumentParser(description="Generate csv file/s")
 
@@ -132,6 +146,7 @@ def check_args(args=None) -> Tuple[str, str, str, bool, str, bool, bool, bool]:
     get_on_ddb(parser)
     get_overwrite(parser)
     get_verbose(parser)
+    get_logger(parser)
 
     cmd_line_args = parser.parse_args(args)
     return (cmd_line_args.generation_number,
@@ -141,7 +156,8 @@ def check_args(args=None) -> Tuple[str, str, str, bool, str, bool, bool, bool]:
             cmd_line_args.bucket,
             cmd_line_args.on_ddb,
             cmd_line_args.overwrite,
-            cmd_line_args.verbose
+            cmd_line_args.verbose,
+            cmd_line_args.logger
             )
 
 

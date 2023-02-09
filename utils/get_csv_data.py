@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import argparse
+from cmath import log
 import os
 import sys
 from typing import Tuple
 import pandas as pd
 from common_vars import DATA_DIRECTORY
-from common_funcs import get_verbose, get_transportation_type, get_on_aws, get_aws_profile, get_bucket, \
-    get_s3_client, check_if_object_exists_in_s3, read_object_from_s3, transport_in_list
+from common_funcs import get_verbose_logger, get_verbose, get_transportation_type, get_on_aws, get_aws_profile, get_bucket, \
+    get_s3_client, check_if_object_exists_in_s3, read_object_from_s3, transport_in_list, get_logger
 
 
 def check_local_exist(transportation_type: str) -> bool:
@@ -25,7 +26,8 @@ def handle_df(obj: str) -> pd.DataFrame:
     return df
 
 
-def get_csv_data(transportation_type: str, aws_profile: str, on_aws: bool, bucket: str) -> Tuple[bool, pd.DataFrame]:
+def get_csv_data(transportation_type: str, aws_profile: str,
+                 on_aws: bool, bucket: str) -> Tuple[bool, pd.DataFrame]:
     df = pd.DataFrame()
     try:
         if not transport_in_list:
@@ -35,6 +37,7 @@ def get_csv_data(transportation_type: str, aws_profile: str, on_aws: bool, bucke
             if check_if_object_exists_in_s3(bucket, f'{transportation_type}.csv', s3_client=s3_client):
                 verboseprint(
                     f'Object {transportation_type}.csv exists in S3, retrieving from S3...')
+                log(f'Object {transportation_type}.csv exists in S3, retrieving from S3...', 'INFO', logger)
                 obj = read_object_from_s3(
                     bucket, f'{transportation_type}.csv', s3_client)
                 df = handle_df(obj)
@@ -43,6 +46,7 @@ def get_csv_data(transportation_type: str, aws_profile: str, on_aws: bool, bucke
         elif check_local_exist(transportation_type):
             verboseprint(
                 f'Object {transportation_type}.csv exists locally, retrieving from local...')
+            log(f'Object {transportation_type}.csv exists locally, retrieving from local...', 'INFO', logger)
             df = pd.read_csv(
                 f'{DATA_DIRECTORY}{transportation_type}.csv', encoding='utf-8')
             verboseprint(df)
@@ -50,32 +54,40 @@ def get_csv_data(transportation_type: str, aws_profile: str, on_aws: bool, bucke
         return False, df
     except Exception as e:
         verboseprint(f'Error in get_csv_data() - {e}')
+        log(f'Error in get_csv_data() - {e}', 'ERROR', logger)
         return False, df
 
 
 def main():
     global verboseprint
+    global log
+    global logger
     (transportation_type,
      aws_profile,
      on_aws,
      bucket,
-     verbose) = check_args(sys.argv[1:])
-    verboseprint = print if verbose else lambda *a, **k: None
+     verbose,
+     logger) = check_args(sys.argv[1:])
+
+    verboseprint, log, logger = get_verbose_logger(verbose, logger)
 
     verboseprint((f' transportation_type: {transportation_type}\n'
                   f' aws_profile: {aws_profile}\n'
                   f' on_aws: {on_aws}\n'
                   f' bucket: {bucket}\n'
-                  f' verbose: {verbose}\n'))
+                  f' verbose: {verbose}\n'
+                  f'logger: {logger}'))
 
     for transportation_type in transportation_type:
         if get_csv_data(transportation_type, aws_profile, on_aws, bucket)[0]:
             verboseprint(f'{transportation_type}.csv has successful retrieved')
+            log(f'{transportation_type}.csv has successful retrieved', 'INFO', logger)
         else:
             verboseprint(f'{transportation_type}.csv has failed to retrieve')
+            log(f'{transportation_type}.csv has failed to retrieve', 'ERROR', logger)
 
 
-def check_args(args=None) -> Tuple[str, str, bool, str, bool]:
+def check_args(args=None) -> Tuple[str, str, bool, str, bool, bool]:
     """Get command line arguments"""
     parser = argparse.ArgumentParser(description="Generate flights.csv file")
 
@@ -84,13 +96,15 @@ def check_args(args=None) -> Tuple[str, str, bool, str, bool]:
     get_on_aws(parser)
     get_bucket(parser)
     get_verbose(parser)
+    get_logger(parser)
 
     cmd_line_args = parser.parse_args(args)
     return (cmd_line_args.transportation_type,
             cmd_line_args.aws_profile,
             cmd_line_args.on_aws,
             cmd_line_args.bucket,
-            cmd_line_args.verbose
+            cmd_line_args.verbose,
+            cmd_line_args.logger
             )
 
 
