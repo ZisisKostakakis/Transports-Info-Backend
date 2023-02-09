@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+import argparse
+from typing import Tuple
 import boto3
+import pandas as pd
 from common_vars import transportation_type_list
 
 
-def get_verbose(parser):
+def get_verbose(parser: argparse.ArgumentParser):
     return parser.add_argument(
         "-v", "--verbose",
         help="Enable verbosity",
@@ -13,7 +16,7 @@ def get_verbose(parser):
         action='store_true')
 
 
-def get_transportation_type(parser):
+def get_transportation_type(parser: argparse.ArgumentParser):
     return parser.add_argument(
         "-type", "--transportation_type",
         nargs='*',
@@ -23,7 +26,7 @@ def get_transportation_type(parser):
     )
 
 
-def get_aws_profile(parser):
+def get_aws_profile(parser: argparse.ArgumentParser):
     return parser.add_argument(
         "-u", "--aws_profile",
         help="Enter the AWS profile name. Default is 'webapp'",
@@ -32,7 +35,7 @@ def get_aws_profile(parser):
     )
 
 
-def get_on_aws(parser):
+def get_on_aws(parser: argparse.ArgumentParser):
     return parser.add_argument(
         "-onaws", "--on_aws",
         help="Write the file to AWS S3",
@@ -42,7 +45,7 @@ def get_on_aws(parser):
     )
 
 
-def get_bucket(parser):
+def get_bucket(parser: argparse.ArgumentParser):
     parser.add_argument(
         "-b", "--bucket",
         help="Enter the bucket name. Default is 'web-app-python'",
@@ -51,7 +54,7 @@ def get_bucket(parser):
     )
 
 
-def get_on_ddb(parser):
+def get_on_ddb(parser: argparse.ArgumentParser):
     return parser.add_argument(
         "-onddb", "--on_ddb",
         help="Write the file to AWS DynamoDB.",
@@ -61,7 +64,7 @@ def get_on_ddb(parser):
     )
 
 
-def get_overwrite(parser):
+def get_overwrite(parser: argparse.ArgumentParser):
     return parser.add_argument(
         "-o", "--overwrite",
         help="Overwrite the existing file",
@@ -71,7 +74,7 @@ def get_overwrite(parser):
     )
 
 
-def get_aws_creds(aws_creds):
+def get_aws_creds(aws_creds: str) -> Tuple[str, str]:
     """Get AWS credentials from ~/.aws/credentials file"""
     session = boto3.Session(profile_name=aws_creds)
     credentials = session.get_credentials()
@@ -81,7 +84,7 @@ def get_aws_creds(aws_creds):
     return aws_access_key_id, aws_secret_access_key
 
 
-def get_boto3_session(aws_creds):
+def get_boto3_session(aws_creds: str) -> boto3.Session:
     """Get boto3 session"""
     aws_access_key_id, aws_secret_access_key = get_aws_creds(
         aws_creds=aws_creds)
@@ -93,33 +96,33 @@ def get_boto3_session(aws_creds):
     return session
 
 
-def get_s3_client(aws_creds):
+def get_s3_client(aws_creds: str):
     """Get boto3 s3 client"""
     session = get_boto3_session(aws_creds=aws_creds)
     s3 = session.client('s3')
     return s3
 
 
-def read_object_from_s3(bucket_name, object_name, s3_client):
+def read_object_from_s3(bucket_name: str, object_name: str, s3_client) -> str:
     """Read object from S3 bucket"""
     obj = s3_client.get_object(Bucket=bucket_name, Key=object_name).get(
         'Body').read().decode('utf-8')
     return obj
 
 
-def write_object_to_s3(bucket_name, object_name, data, s3_client):
+def write_object_to_s3(bucket_name: str, object_name: str, data: str, s3_client) -> None:
     """Write object to S3 bucket"""
     s3_client.put_object(Bucket=bucket_name, Key=object_name, Body=data)
 
 
-def get_ddb_client(aws_creds):
+def get_ddb_client(aws_creds: str):
     """Get boto3 DynamoDB client"""
     session = get_boto3_session(aws_creds=aws_creds)
     ddb = session.client('dynamodb')
     return ddb
 
 
-def get_ddb_object(ddb_client, table_name, key):
+def get_ddb_object(ddb_client, table_name: str, key: dict) -> dict:
     """Get DynamoDB object"""
     response = ddb_client.get_item(
         TableName=table_name,
@@ -128,19 +131,19 @@ def get_ddb_object(ddb_client, table_name, key):
     return response
 
 
-def write_ddb_object(ddb_client, table_name, data):
+def write_ddb_object(ddb_client, table_name: str, data: pd.DataFrame) -> None:
     for row in data.iterrows():
         item = {col: {'S': str(value)} for col, value in row[1].items()}
         ddb_client.put_item(TableName=table_name, Item=item)
 
 
-def write_object_to_both_s3_and_ddb(bucket_name, object_name, data, table_name, key, s3_client, ddb_client):
+def write_object_to_both_s3_and_ddb(bucket_name: str, object_name: str, data: str, table_name: str, key: pd.DataFrame, s3_client, ddb_client) -> None:
     """Write object to S3 and DynamoDB"""
     write_object_to_s3(bucket_name, object_name, data, s3_client)
     write_ddb_object(ddb_client, table_name, key)
 
 
-def check_if_object_exists_in_s3(bucket_name, object_name, s3_client):
+def check_if_object_exists_in_s3(bucket_name: str, object_name: str, s3_client) -> bool:
     """Check if object exists in S3"""
     try:
         s3_client.head_object(Bucket=bucket_name, Key=object_name)
@@ -150,7 +153,7 @@ def check_if_object_exists_in_s3(bucket_name, object_name, s3_client):
         return False
 
 
-def check_if_object_exists_in_ddb(ddb_client, table_name, key):
+def check_if_object_exists_in_ddb(ddb_client, table_name: str, key: dict) -> bool:
     """Check if object exists in DynamoDB"""
     try:
         get_ddb_object(ddb_client, table_name, key)
@@ -160,7 +163,7 @@ def check_if_object_exists_in_ddb(ddb_client, table_name, key):
         return False
 
 
-def check_if_object_exists_in_both_s3_and_ddb(bucket_name, object_name, table_name, key, s3_client, ddb_client):
+def check_if_object_exists_in_both_s3_and_ddb(bucket_name: str, object_name: str, table_name: str, key: dict, s3_client, ddb_client) -> bool:
     """Check if object exists in S3 and DynamoDB"""
     try:
         s3_client.head_object(Bucket=bucket_name, Key=object_name)
@@ -177,24 +180,24 @@ def get_list_of_buckets(s3_client):
     return response
 
 
-def get_list_of_objects_s3(bucket_name, s3_client):
+def get_list_of_objects_s3(bucket_name: str, s3_client) -> dict:
     """Get list of objects in bucket"""
     response = s3_client.list_objects_v2(Bucket=bucket_name)
     return response
 
 
-def get_list_of_objects_ddb(ddb_client, table_name):
+def get_list_of_objects_ddb(ddb_client, table_name: str) -> dict:
     """Get list of objects in DynamoDB table"""
     response = ddb_client.scan(TableName=table_name)
     return response
 
 
-def delete_object_from_s3(bucket_name, object_name, s3_client):
+def delete_object_from_s3(bucket_name: str, object_name: str, s3_client) -> None:
     """Delete object from S3"""
     s3_client.delete_object(Bucket=bucket_name, Key=object_name)
 
 
-def transport_in_list(value):
+def transport_in_list(value: str) -> bool:
     if value not in transportation_type_list:
         msg = f'Error in {value} - Invalid transportation type'
         print(msg)

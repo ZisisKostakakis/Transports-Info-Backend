@@ -3,19 +3,20 @@
 import argparse
 import os
 import sys
+from typing import Tuple
 import pandas as pd
 from common_vars import DATA_DIRECTORY
 from common_funcs import get_verbose, get_transportation_type, get_on_aws, get_aws_profile, get_bucket, \
     get_s3_client, check_if_object_exists_in_s3, read_object_from_s3, transport_in_list
 
 
-def check_local_exist(transportation_type):
+def check_local_exist(transportation_type: str) -> bool:
     if os.path.exists(f'{DATA_DIRECTORY}{transportation_type}.csv'):
         return True
     return False
 
 
-def handle_df(obj):
+def handle_df(obj: str) -> pd.DataFrame:
     rows = obj.split('\n')
     df = pd.DataFrame(rows)
     df = df[0].str.split(',', expand=True)
@@ -24,7 +25,7 @@ def handle_df(obj):
     return df
 
 
-def get_csv_data(transportation_type, aws_profile, on_aws, bucket):
+def get_csv_data(transportation_type: str, aws_profile: str, on_aws: bool, bucket: str) -> Tuple[bool, pd.DataFrame]:
     df = pd.DataFrame()
     try:
         if not transport_in_list:
@@ -74,7 +75,7 @@ def main():
             verboseprint(f'{transportation_type}.csv has failed to retrieve')
 
 
-def check_args(args=None):
+def check_args(args=None) -> Tuple[str, str, bool, str, bool]:
     """Get command line arguments"""
     parser = argparse.ArgumentParser(description="Generate flights.csv file")
 

@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 from __future__ import print_function
-import argparse
-import sys
 import os
+import sys
+import argparse
+from typing import Tuple
 import pandas as pd
 from faker import Faker
 from common_vars import DATA_DIRECTORY, FLIGHTS, BUS, TRAIN
@@ -13,7 +14,7 @@ from common_funcs import get_s3_client, write_object_to_s3, get_ddb_client, writ
 transportation_type_list = [FLIGHTS, BUS, TRAIN]
 
 
-def populate_df(generation_number, transportation_type):
+def populate_df(generation_number: int, transportation_type: str) -> pd.DataFrame:
     fake = Faker()
     type_number = f'{transportation_type}_number'
     rows = []
@@ -46,7 +47,7 @@ def populate_df(generation_number, transportation_type):
     return pd.DataFrame(rows, columns=header)
 
 
-def generate_csv_data(generation_number, transportation_type, aws_creds, on_aws, bucket, on_ddb, overwrite):
+def generate_csv_data(generation_number: int, transportation_type: str, aws_creds: str, on_aws: bool, bucket: str, on_ddb: bool, overwrite: bool) -> bool:
     if overwrite:
         try:
             if not transport_in_list:
@@ -114,7 +115,7 @@ def main():
         return False
 
 
-def check_args(args=None):
+def check_args(args=None) -> Tuple[str, str, str, bool, str, bool, bool, bool]:
     """Get command line arguments"""
     parser = argparse.ArgumentParser(description="Generate csv file/s")
 

@@ -11,27 +11,27 @@ from generate_csv_data import main
 #     assert main() is True
 
 
-def test_generate_csv_data_overwrite_fail():
+def test_generate_csv_data_overwrite_fail() -> None:
     # This should fail as the file already exists and overwrite is not enabled
     sys.argv = ['main.py', '-g', '1', '-v', '-type', 'test',
                 '-onaws', '-onddb', '-u', 'webapp']
     assert main() is False
 
 
-def test_generate_csv_data_type_fail():
+def test_generate_csv_data_type_fail() -> None:
     # This should fail as the type is wrong
     sys.argv = ['main.py', '-g', '1', '-v', '-type', 'wrong_type',
                 '-onaws', '-onddb', '-u', 'webapp', '-o']
     assert main() is False
 
 
-def test_generate_csv_data_local_pass():
+def test_generate_csv_data_local_pass() -> None:
     # This should pass and creates the csv file locally
     sys.argv = ['main.py', '-g', '1', '-v', '-type', 'test', '-o']
     assert main() is True
 
 
-def test_generate_csv_data_generation_number_fail():
+def test_generate_csv_data_generation_number_fail() -> None:
     # This should fail as the generation number is wrong
     sys.argv = ['main.py', '-g', '-1', '-v', '-type', 'test', '-o']
     assert main() is False
@@ -41,7 +41,7 @@ def test_generate_csv_data_generation_number_fail():
     assert 'invalid literal for int() with base 10: \'1.50\'' in str(excinfo.value)
 
 
-def test_generate_csv_data_no_args_fail():
+def test_generate_csv_data_no_args_fail() -> None:
     # This should fail as there are no arguments
     with pytest.raises(SystemExit) as excinfo:
         sys.argv = ['main.py']
