@@ -72,10 +72,10 @@ def generate_csv_data(generation_number: int, transportation_type: str, aws_cred
                 if on_ddb:
                     write_ddb_object(get_ddb_client(aws_creds),
                                      f'webapp-{transportation_type}', df)
-        except Exception as e:
+        except Exception as error:
             verboseprint(
-                f'Error in generating the {transportation_type}.csv - {e}')
-            log(f'Error in generating the {transportation_type}.csv - {e}', 'ERROR', logger)
+                f'Error in generating the {transportation_type}.csv - {error}')
+            log(f'Error in generating the {transportation_type}.csv - {error}', 'ERROR', logger)
             return False
     else:
         verboseprint(
