@@ -6,3 +6,4 @@ generate_data/train.csv
 generate_data/test.csv
 __pycache__/
 utils/__pycache__/
+webapp.conf
