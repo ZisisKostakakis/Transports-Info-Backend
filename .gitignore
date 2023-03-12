@@ -1,13 +1,9 @@
 
-.vscode/
+**/.vscode/
 generate_data/flights.csv
 generate_data/bus.csv
 generate_data/train.csv
 generate_data/test.csv
-__pycache__/
-utils/__pycache__/
-<<<<<<< HEAD
-webapp.log
-=======
-webapp.conf
->>>>>>> origin
+**/__pycache__/
+**/webapp.log
+**/webapp.conf
