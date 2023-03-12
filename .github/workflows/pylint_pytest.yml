@@ -3,21 +3,29 @@ name: pylint_pytest
 on:
   pull_request:
     types: [opened, reopened, synchronize]
-
+    
 jobs:
   build:
     runs-on: ubuntu-latest
-    container:
-      image: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/webapp:latest
-      env:
+    inputs:
+      secret_input:
+        AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+        AWS_REGION: ${{ secrets.AWS_REGION }}
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        AWS_REGION: ${{ secrets.AWS_REGION }}
+        
+    container:
+      image: ${{ inputs.secret_input.AWS_ACCOUNT_ID }}.dkr.ecr.${{ inputs.secret_input.AWS_REGION }}.amazonaws.com/webapp:latest
+      env:
+        AWS_ACCESS_KEY_ID: ${{ inputs.secret_input.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ inputs.secret_input.AWS_SECRET_ACCESS_KEY }}
+        AWS_REGION: ${{ inputs.secret_input.AWS_REGION }}
+      
     steps:
-     - name: Pull Docker Image
-       run: |
-        aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
-        docker pull ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/webapp:latest
-     - name: Run Docker Pylint and Pytest
-       run: |
-        docker run --rm -v $(pwd):/app ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/webapp:latest
+      - name: Pull Docker Image
+        run: |
+          aws ecr get-login-password --region ${{ inputs.secret_input.AWS_REGION }} | docker login --username AWS --password-stdin ${{ inputs.secret_input.AWS_ACCOUNT_ID }}.dkr.ecr.${{ inputs.secret_input.AWS_REGION }}.amazonaws.com
+          docker pull ${{ inputs.secret_input.AWS_ACCOUNT_ID }}.dkr.ecr.${{ inputs.secret_input.AWS_REGION }}.amazonaws.com/webapp:latest
+      - name: Run Docker Pylint and Pytest
+        run: |
+          docker run --rm -v $(pwd):/app ${{ inputs.secret_input.AWS_ACCOUNT_ID }}.dkr.ecr.${{ inputs.secret_input.AWS_REGION }}.amazonaws.com/webapp:latest
