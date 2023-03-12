@@ -1,10 +1,9 @@
-name: run-ecr-container
+name: pylint_pytest_ecr
 
 on:
-  push:
-    branches:
-      - main
-
+  pull_request:
+    types: [opened, reopened, synchronize]
+    
 env:
   ECR_REGISTRY: public.ecr.aws/j2v6p8h8/webapp
   ECR_REPOSITORY: webapp
