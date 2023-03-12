@@ -8,21 +8,25 @@ jobs:
   build:
     runs-on: ubuntu-latest
     env:
-      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       AWS_REGION: ${{ secrets.AWS_REGION }}
+      AWS_REGISTRY_URL: ${{ secrets.AWS_REGISTRY_URL }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }} 
+      AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }} 
     steps:
+      - name: Download AWS CLC
+        run: |
+          curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+          unzip awscliv2.zip
+          sudo ./aws/install
       - name: Login to Amazon ECR
-        id: login-ecr-public
-        uses: aws-actions/amazon-ecr-login@v1
-        with:
-          registry-type: public
-          REGISTRY: ${{ secrets.AWS_REGISTRY_URL }}
-          REPOSITORY: webapp
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
-          
+        run: |
+           aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${AWS_REGISTRY_URL}
+        env:
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+          AWS_REGISTRY_URL: ${{ secrets.AWS_REGISTRY_URL }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }} 
       - name: Pull Docker Image
         run: |
           docker pull ${AWS_REGISTRY_URL}/webapp:latest
