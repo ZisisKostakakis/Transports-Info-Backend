@@ -2,9 +2,43 @@
 # -*- coding: utf-8 -*-
 import argparse
 from typing import Tuple
+import logging
 import boto3
 import pandas as pd
 from common_vars import transportation_type_list
+
+
+def get_verbose_logger(verbose: bool, logger_arg: bool):
+    verboseprint = print if verbose else lambda *a, **k: None
+    logger = get_logger_instance() if logger_arg else None
+    log = log_msg if logger else lambda *a, **k: None
+    return verboseprint, log, logger
+
+
+def get_logger_instance() -> logging.Logger:
+    logging.basicConfig(filename='webapp.log', level=logging.INFO, filemode='w',
+                        format='%(asctime)s - %(levelname)s - %(message)s', datefmt='%d-%b-%y %H:%M:%S')
+    return logging.getLogger(__name__)
+
+
+def log_msg(msg: str, level: str, logger) -> None:
+    if level == 'INFO':
+        logger.info(msg)
+    elif level == 'WARNING':
+        logger.warning(msg)
+    elif level == 'ERROR':
+        logger.error(msg)
+    elif level == 'CRITICAL':
+        logger.critical(msg)
+
+
+def get_logger(parser: argparse.ArgumentParser):
+    return parser.add_argument(
+        "-lg", "--logger",
+        help="Enable logging",
+        required=False,
+        default=False,
+        action='store_true')
 
 
 def get_verbose(parser: argparse.ArgumentParser):
