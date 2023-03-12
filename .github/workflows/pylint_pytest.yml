@@ -1,12 +1,8 @@
-name: pylint_pytest_ecr
+name: pylint_pytest
 
 on:
   pull_request:
     types: [opened, reopened, synchronize]
-
-env:
-  ECR_REGISTRY: public.ecr.aws/j2v6p8h8/webapp
-  ECR_REPOSITORY: webapp
 
 jobs:
   build:
@@ -15,49 +11,27 @@ jobs:
       matrix:
         python-version: ["3.9"]
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
-
-      - name: Login to Amazon ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v1
-
-      - name: Pull Docker Image from ECR
-        uses: docker/cli@v2
-        with:
-          command: pull
-          args: ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
-
-      - name: Run Docker Image
-        env:
-          ECR_REGISTRY: ${{ env.ECR_REGISTRY }}
-          ECR_REPOSITORY: ${{ env.ECR_REPOSITORY }}
-          IMAGE_TAG: ${{ github.sha }}
-        run: |
-          docker run -t -d $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-
+      - uses: actions/checkout@v3
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v3
         with:
           python-version: ${{ matrix.python-version }}
-
+      - name: Set PYTHONPATH
+        run: |
+          export PYTHONPATH=$PYTHONPATH:/home/runner/work/Web-app-python/Web-app-python/utils:/home/runner/work/Web-app-python/Web-app-python/generate_data
+          echo $PYTHONPATH
       - name: Install dependencies
         run: |
+          # python -m pip install --upgrade pip
           python -m pip install pipenv
+      - name: Install packages with pipenv
+        run: |
           pipenv install
-
       - name: Analysing the code with pylint
         run: |
+          export PYTHONPATH=$PYTHONPATH:/home/runner/work/Web-app-python/Web-app-python/utils:/home/runner/work/Web-app-python/Web-app-python/generate_data
           pipenv run pylint --rcfile=pylint.cfg $(git ls-files '*.py') -s true --fail-under=10
-
       - name: Now running Pytest
         run: |
+          export PYTHONPATH=$PYTHONPATH:/home/runner/work/Web-app-python/Web-app-python/utils:/home/runner/work/Web-app-python/Web-app-python/generate_data
           pipenv run pytest
-
