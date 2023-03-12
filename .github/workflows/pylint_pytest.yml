@@ -21,7 +21,7 @@ jobs:
           sudo ./aws/install --update
       - name: Login to Amazon ECR
         run: |
-           aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${AWS_REGISTRY_URL}
+           aws ecr get-login-password --region ${AWS_REGION} --registry-ids ${AWS_ACCOUNT_ID} | docker login --username AWS --password-stdin ${AWS_REGISTRY_URL}
         env:
           AWS_REGION: ${{ secrets.AWS_REGION }}
           AWS_REGISTRY_URL: ${{ secrets.AWS_REGISTRY_URL }}
