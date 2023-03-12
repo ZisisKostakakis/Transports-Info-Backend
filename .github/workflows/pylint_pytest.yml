@@ -1,35 +1,60 @@
-name: pylint_pytest
+name: pylint_pytest_ecr
 
 on:
   pull_request:
     types: [opened, reopened, synchronize]
 
+env:
+  ECR_REGISTRY: public.ecr.aws/j2v6p8h8/webapp
+  ECR_REPOSITORY: webapp
+
 jobs:
   build:
     runs-on: ubuntu-latest
-    env:
-      AWS_REGION: ${{ secrets.AWS_REGION }}
-      AWS_REGISTRY_URL: ${{ secrets.AWS_REGISTRY_URL }}
-      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }} 
-      AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }} 
+    strategy:
+      matrix:
+        python-version: ["3.9"]
     steps:
-      - name: Download AWS CLC
-        run: |
-          curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-          unzip awscliv2.zip
-          sudo ./aws/install --update
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
       - name: Login to Amazon ECR
-        run: |
-           aws ecr get-login-password --region ${AWS_REGION} --registry-ids ${AWS_ACCOUNT_ID} | docker login --username AWS --password-stdin ${AWS_REGISTRY_URL}
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Build and push Docker image
+        id: build-image
         env:
-          AWS_REGION: ${{ secrets.AWS_REGION }}
-          AWS_REGISTRY_URL: ${{ secrets.AWS_REGISTRY_URL }}
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }} 
-      - name: Pull Docker Image
+          ECR_REGISTRY: ${{ env.ECR_REGISTRY }}
+          ECR_REPOSITORY: ${{ env.ECR_REPOSITORY }}
+          IMAGE_TAG: ${{ github.sha }}
         run: |
-          docker pull ${AWS_REGISTRY_URL}/webapp:latest
-      - name: Run Docker Pylint and Pytest
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
         run: |
-          docker run --rm -v $(pwd):/app ${AWS_REGISTRY_URL}/webapp:latest
+          python -m pip install pipenv
+          pipenv install
+
+      - name: Analysing the code with pylint
+        run: |
+          pipenv run pylint --rcfile=pylint.cfg $(git ls-files '*.py') -s true --fail-under=10
+
+      - name: Now running Pytest
+        run: |
+          pipenv run pytest
+
