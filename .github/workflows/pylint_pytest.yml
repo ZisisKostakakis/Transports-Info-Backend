@@ -30,7 +30,7 @@ jobs:
       id: login-ecr
       uses: aws-actions/amazon-ecr-login@v1
 
-    # Pull the image from ECR, using the cached layers if available
+    # Pull the image from ECR
     - name: Docker pull from Amazon ECR
       if: steps.restore-docker-cache.outputs.cache-hit != 'true'
       env:
