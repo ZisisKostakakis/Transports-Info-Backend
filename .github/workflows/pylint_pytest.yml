@@ -1,4 +1,4 @@
-name: pylint_pytest
+name: aws-ecr-docker-image-pylint-pytest
 
 on:
   pull_request:
@@ -14,26 +14,16 @@ jobs:
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID  }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        # aws-region: ${{ secrets.AWS_REGION }}
-        aws-region: us-east-1
+        aws-region: ${{ secrets.AWS_REGION }}
 
     - name: Login to Amazon ECR
       id: login-ecr
       uses: aws-actions/amazon-ecr-login@v1
 
-    - name: Docker pull from Amazon ECR
+    # Not specifying ECR Repository or image tag as we only have one
+    - name: Docker pull and run from Amazon ECR
       env:
-        # ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         ECR_REGISTRY: ${{ secrets.AWS_REGISTRY_URL }}
-        # ECR_REPOSITORY: webapp
-        # IMAGE_TAG: latest
       run: |
-        docker pull $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-
-    - name: Docker run on GitHub Actions
-      env:
-        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        ECR_REPOSITORY: webapp
-        IMAGE_TAG: latest
-      run: |
+        docker pull $ECR_REGISTRY
         docker run $ECR_REGISTRY
