@@ -30,6 +30,7 @@ jobs:
         fi
 
     - name: Pull and run Docker image
+    #Cache the image if its not already cached
       env:
         ECR_REGISTRY: ${{ secrets.AWS_REGISTRY_URL }}
       run: |
