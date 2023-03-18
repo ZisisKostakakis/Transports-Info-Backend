@@ -5,14 +5,13 @@
 import dash_bootstrap_components as dbc
 from flask import Flask
 import dash
-from dash import Dash, html, dcc, Output, Input, ctx
-from dash.exceptions import PreventUpdate
+from dash import html, Output, Input, ctx
 from common_vars import FLIGHTS, BUS, TRAIN
 from get_csv_data import get_csv_data
 from common_funcs import get_verbose_logger
 
 server = Flask(__name__)
-app = dash.Dash(__name__, server=server, url_base_pathname='/', suppress_callback_exceptions=True) 
+app = dash.Dash(__name__, server=server, url_base_pathname='/', suppress_callback_exceptions=True)
 
 app.layout = html.Div([
     html.Button('Flights', id='button-flights', n_clicks=0),
@@ -36,7 +35,7 @@ def get_transport_info(n_clicks_flights, n_clicks_bus, n_clicks_train):
     flight_clicked = ctx.triggered[0]['prop_id'].split('.')[0] == 'button-flights'
     bus_clicked = ctx.triggered[0]['prop_id'].split('.')[0] == 'button-bus'
     train_clicked = ctx.triggered[0]['prop_id'].split('.')[0] == 'button-train'
-    
+
     if flight_clicked:
         transport_type = FLIGHTS
     elif bus_clicked:
@@ -45,11 +44,11 @@ def get_transport_info(n_clicks_flights, n_clicks_bus, n_clicks_train):
         transport_type = TRAIN
     else:
         transport_type = ''
-        
+
     data = get_transport_list(transport_type)
-    
+
     return html.Div([
-        html.P('Transport type: {}'.format(transport_type))
+        html.P(f'Transport type: {transport_type}')
     ]), html.Div([
         dbc.Table.from_dataframe(data, striped=True, bordered=True, hover=True)
     ])
