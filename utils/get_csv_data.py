@@ -26,7 +26,7 @@ def handle_df(obj: str) -> pd.DataFrame:
 
 
 def get_csv_data(transportation_type: str, aws_profile: str,
-                 on_aws: bool, bucket: str) -> Tuple[bool, pd.DataFrame]:
+                 on_aws: bool, bucket: str, verboseprint, log, logger ) -> Tuple[bool, pd.DataFrame]:
     df = pd.DataFrame()
     try:
         if not transport_in_list:
@@ -78,7 +78,7 @@ def main():
                   f'logger: {logger}'))
 
     for transportation_type in transportation_type:
-        if get_csv_data(transportation_type, aws_profile, on_aws, bucket)[0]:
+        if get_csv_data(transportation_type, aws_profile, on_aws, bucket, verboseprint, log, logger)[0]:
             verboseprint(f'{transportation_type}.csv has successful retrieved')
             log(f'{transportation_type}.csv has successful retrieved', 'INFO', logger)
         else:
