@@ -23,7 +23,8 @@ jobs:
 
     - name: Docker pull from Amazon ECR
       env:
-        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        # ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        ECR_REGISTRY: ${{ secrets.AWS_REGISTRY_URL }}
         ECR_REPOSITORY: webapp
         IMAGE_TAG: latest
       run: |
