@@ -31,12 +31,14 @@ jobs:
       uses: aws-actions/amazon-ecr-login@v1
 
     # Pull the image from ECR
+    # Pull the image from ECR, using the cached layers if available
     - name: Docker pull from Amazon ECR
-      if: steps.restore-docker-cache.outputs.cache-hit != 'true'
       env:
         ECR_REGISTRY: ${{ secrets.AWS_REGISTRY_URL }}
+      if: steps.restore-cache.outputs.cache-hit != 'true'
       run: |
         docker pull $ECR_REGISTRY
+
 
     # Run Image
     - name: Run pylint and pytest
