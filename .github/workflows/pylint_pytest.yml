@@ -1,4 +1,4 @@
-name: pylint_pytest
+name: aws-ecr-docker-image-pylint-pytest
 
 on:
   pull_request:
@@ -20,15 +20,24 @@ jobs:
       id: login-ecr
       uses: aws-actions/amazon-ecr-login@v1
 
-    - name: Docker pull from Amazon ECR - Not specifying ECR Repository or image tag as we only have one
+    - name: Check for Docker cache
+      id: check-cache
+      run: |
+        if [ -d "/tmp/docker" ]; then
+          echo "::set-output name=cache-hit::true"
+        else
+          echo "::set-output name=cache-hit::false"
+        fi
+
+    - name: Pull and run Docker image
       env:
         ECR_REGISTRY: ${{ secrets.AWS_REGISTRY_URL }}
       run: |
-        docker pull $ECR_REGISTRY
+        if [ ${{ steps.check-cache.outputs.cache-hit }} == "true" ]; then
+          docker load < /tmp/docker/image.tar
+        else
+          mkdir -p /tmp/docker
+          docker pull $ECR_REGISTRY
+          docker save $ECR_REGISTRY > /tmp/docker/image.tar
+        fi
         docker run $ECR_REGISTRY
-
-    # - name: Docker run on GitHub Actions - Not specifying ECR Repository or image tag as we only have one
-    #   env:
-    #     ECR_REGISTRY: ${{ secrets.AWS_REGISTRY_URL }}
-    #   run: |
-    #     docker run $ECR_REGISTRY
