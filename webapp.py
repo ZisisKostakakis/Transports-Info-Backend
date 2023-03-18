@@ -3,67 +3,60 @@
 # Run this app with `python app.py` and
 # visit http://127.0.0.1:5000/ in your web browser.
 import dash_bootstrap_components as dbc
-import flask
-from dash import Dash, html, dcc, Output, Input
+from flask import Flask
+import dash
+from dash import Dash, html, dcc, Output, Input, ctx
+from dash.exceptions import PreventUpdate
 from common_vars import FLIGHTS, BUS, TRAIN
 from get_csv_data import get_csv_data
+from common_funcs import get_verbose_logger
 
+server = Flask(__name__)
+app = dash.Dash(__name__, server=server, url_base_pathname='/', suppress_callback_exceptions=True) 
+
+app.layout = html.Div([
+    html.Button('Flights', id='button-flights', n_clicks=0),
+    html.Button('Bus', id='button-bus', n_clicks=0),
+    html.Button('Train', id='button-train', n_clicks=0),
+    html.Div(id='output')
+])
 
 def get_transport_list(transportation_type):
     ttype = str(transportation_type)
     ttype = ttype.replace('[', '').replace(']', '').replace("'", '')
     transport_list = get_csv_data(
-        ttype, 'webapp', True, 'web-app-python')[1]['From_Country']
-    return [{'label': item, 'value': item} for item in transport_list]
+        ttype, 'webapp', True, 'web-app-python', verboseprint, log, logger)[1]
+    return transport_list
 
-
-def update_transport_list(transportation_type):
-    return get_transport_list(transportation_type)
-
-
-def update_button_clicks(dropdown_value):
-    return 1
-
-
-def update_transport_options(transportation_type):
-    return update_transport_list(transportation_type)
-
-
-server = flask.Flask(__name__)
-app = Dash(__name__, server=server, external_stylesheets=[dbc.themes.BOOTSTRAP],
-           suppress_callback_exceptions=True, prevent_initial_callbacks=True)
-
-app.layout = html.Div([
-    dbc.Row([
-        dbc.Col(
-            dcc.Checklist(
-                id='checkbox',
-                options=[
-                    {'label': 'Flights', 'value': FLIGHTS},
-                    {'label': 'Bus', 'value': BUS},
-                    {'label': 'Train', 'value': TRAIN},
-                ],
-                value=['flights']
-            )
-        ),
-        dbc.Col(
-            dcc.Dropdown(
-                id='dropdown',
-                options=[],
-                multi=True
-            )
-        ),
-        dbc.Col(
-            html.Button('Submit', id='submit-button', n_clicks=0)
-        )
+@app.callback(Output('output', 'children'),
+              [Input('button-flights', 'n_clicks'),
+               Input('button-bus', 'n_clicks'),
+               Input('button-train', 'n_clicks')])
+def get_transport_info(n_clicks_flights, n_clicks_bus, n_clicks_train):
+    flight_clicked = ctx.triggered[0]['prop_id'].split('.')[0] == 'button-flights'
+    bus_clicked = ctx.triggered[0]['prop_id'].split('.')[0] == 'button-bus'
+    train_clicked = ctx.triggered[0]['prop_id'].split('.')[0] == 'button-train'
+    
+    if flight_clicked:
+        transport_type = FLIGHTS
+    elif bus_clicked:
+        transport_type = BUS
+    elif train_clicked:
+        transport_type = TRAIN
+    else:
+        transport_type = ''
+        
+    data = get_transport_list(transport_type)
+    
+    return html.Div([
+        html.P('Transport type: {}'.format(transport_type))
+    ]), html.Div([
+        dbc.Table.from_dataframe(data, striped=True, bordered=True, hover=True)
     ])
-])
 
-app.callback(Output('submit-button', 'n_clicks'),
-             Input('dropdown', 'value'))(update_button_clicks)
-
-app.callback(Output('dropdown', 'options'),
-             Input('checkbox', 'value'))(update_transport_options)
-
-# Debug is False, hot-reloading is disabled
-app.run_server(port=5001,host='0.0.0.0', debug=False)
+if __name__ == '__main__':
+    global verboseprint
+    global log
+    global logger
+    verboseprint, log, logger = get_verbose_logger(True, False)
+    server.run(debug=False, port=5001, host='0.0.0.0')
