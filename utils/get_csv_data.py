@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import argparse
-from cmath import log
 import os
 import sys
 from typing import Tuple
@@ -54,7 +53,7 @@ def get_csv_data(transportation_type: str, aws_profile: str,
         return False, df
     except Exception as e:
         verboseprint(f'Error in get_csv_data() - {e}')
-        log(f'Error in get_csv_data() - {e}', 'ERROR', logger)
+        log(f'Error in get_csv_data() - {e}', 'ERROR', logger) 
         return False, df
 
 
@@ -85,6 +84,8 @@ def main():
         else:
             verboseprint(f'{transportation_type}.csv has failed to retrieve')
             log(f'{transportation_type}.csv has failed to retrieve', 'ERROR', logger)
+            return False
+    return True
 
 
 def check_args(args=None) -> Tuple[str, str, bool, str, bool, bool]:
