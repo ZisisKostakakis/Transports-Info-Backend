@@ -16,43 +16,14 @@ jobs:
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: ${{ secrets.AWS_REGION }}
 
-    - name: Restore Docker build cache
-      uses: actions/cache@v2
-      id: restore-docker-cache
-      with:
-        path: /tmp/docker
-        key: docker-${{ github.sha }}
-        restore-keys: |
-          docker-
-
     - name: Login to Amazon ECR
-      if: steps.restore-docker-cache.outputs.cache-hit != 'true'
       id: login-ecr
       uses: aws-actions/amazon-ecr-login@v1
 
-    # Pull the image from ECR
-    # Pull the image from ECR, using the cached layers if available
-    - name: Docker pull from Amazon ECR
+    # Not specifying ECR Repository or image tag as we only have one
+    - name: Docker pull and run from Amazon ECR
       env:
         ECR_REGISTRY: ${{ secrets.AWS_REGISTRY_URL }}
-      if: steps.restore-cache.outputs.cache-hit != 'true'
       run: |
         docker pull $ECR_REGISTRY
-
-
-    # Run Image
-    - name: Run pylint and pytest
-      env:
-        ECR_REGISTRY: ${{ secrets.AWS_REGISTRY_URL }}
-      run: |
         docker run $ECR_REGISTRY
-
-    # Save Docker build cache for future runs
-    - name: Save Docker build cache
-      if: steps.restore-docker-cache.outputs.cache-hit != 'true'
-      uses: actions/cache@v2
-      with:
-        path: /tmp/docker
-        key: docker-${{ github.sha }}
-        restore-keys: |
-          docker-
