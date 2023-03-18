@@ -26,7 +26,7 @@ jobs:
         # ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         ECR_REGISTRY: ${{ secrets.AWS_REGISTRY_URL }}
         # ECR_REPOSITORY: webapp
-        IMAGE_TAG: latest
+        # IMAGE_TAG: latest
       run: |
         docker pull $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
@@ -36,4 +36,4 @@ jobs:
         ECR_REPOSITORY: webapp
         IMAGE_TAG: latest
       run: |
-        docker run $ECR_REGISTRY:$IMAGE_TAG
+        docker run $ECR_REGISTRY
