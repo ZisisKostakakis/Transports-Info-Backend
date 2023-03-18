@@ -15,20 +15,20 @@ jobs:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID  }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: ${{ secrets.AWS_REGION }}
-        # aws-region: us-east-1
 
     - name: Login to Amazon ECR
       id: login-ecr
       uses: aws-actions/amazon-ecr-login@v1
 
-    - name: Docker pull from Amazon ECR
+    - name: Docker pull from Amazon ECR - Not specifying ECR Repository or image tag as we only have one
       env:
         ECR_REGISTRY: ${{ secrets.AWS_REGISTRY_URL }}
       run: |
         docker pull $ECR_REGISTRY
-
-    - name: Docker run on GitHub Actions
-      env:
-        ECR_REGISTRY: ${{ secrets.AWS_REGISTRY_URL }}
-      run: |
         docker run $ECR_REGISTRY
+
+    # - name: Docker run on GitHub Actions - Not specifying ECR Repository or image tag as we only have one
+    #   env:
+    #     ECR_REGISTRY: ${{ secrets.AWS_REGISTRY_URL }}
+    #   run: |
+    #     docker run $ECR_REGISTRY
