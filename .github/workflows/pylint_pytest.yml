@@ -33,7 +33,7 @@ jobs:
       run: |
         docker pull $ECR_REGISTRY
 
-    # Run pylint and pytest on the pulled image
+    # Run Image
     - name: Run pylint and pytest
       env:
         ECR_REGISTRY: ${{ secrets.AWS_REGISTRY_URL }}
