@@ -2,7 +2,13 @@ FROM python:3.9
 
 WORKDIR /app
 
-COPY . /app
+# COPY . /app
+
+RUN apt-get update && \
+    apt-get install -y git
+
+# Clone the repository
+RUN git clone https://github.com/ZisisKostakakis/Web-app-python.git /app
 
 # Install pipenv
 RUN pip3 install --user pipenv
@@ -13,9 +19,8 @@ ENV PYTHONPATH=/app/generate_data:/app/utils:
 
 # Install dependencies
 COPY **/Pipfile* ./
-RUN cd /app && pipenv install --system --deploy \
-    && pip install --upgrade pip
+RUN cd /app && pip install --no-cache-dir -r requirements.txt
 
 CMD pipenv run pylint --rcfile=pylint.cfg $(git ls-files '*.py') -s true --fail-under=10 && \
-    pipenv run pytest
+    pipenv run pytest 
 
