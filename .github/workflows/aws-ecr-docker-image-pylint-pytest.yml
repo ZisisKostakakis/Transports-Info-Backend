@@ -1,4 +1,4 @@
-name: pylint-pytest
+name: pylint_pytest
 
 on:
   pull_request:
@@ -7,33 +7,39 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-
+    strategy:
+      matrix:
+        python-version: ["3.9"]
     steps:
-    - uses: actions/checkout@v2
-
-    - name: Cache pipenv
-      uses: actions/cache@v2
-      id: cache-pipenv
-      with:
-        path: ~/.local/share/virtualenvs
-        key: ${{ runner.os }}-pipenv-${{ hashFiles('**/Pipfile.lock') }}
-        restore-keys: |
-          ${{ runner.os }}-pipenv-
-
-    - name: Install dependencies
-      run: |
-        pip install pipenv
-        pipenv install --dev
-
-    - name: Run PyLint
-      run: |
-        pipenv run pylint --rcfile=pylint.cfg $(git ls-files '*.py') -s true --fail-under=10
-
-    - name: Generate csv files
-      run: |
-        pipenv run python generate_data/generate_csv_data.py -g 10 -type flights bus train -v -o
-
-    - name: Run pytest
-      run: |
-        pipenv run pytest
-        pipenv run pylint --rcfile=pylint.cfg $(git ls-files '*.py') -s true --fail-under=10
+      - uses: actions/checkout@v3
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v3
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Set PYTHONPATH
+        run: |
+          export PYTHONPATH=$PYTHONPATH:/home/runner/work/Web-app-python/Web-app-python/utils:/home/runner/work/Web-app-python/Web-app-python/generate_data
+          echo $PYTHONPATH
+      - name: Cache pipenv installation
+        uses: actions/cache@v2
+        id: cache-pipenv
+        with:
+          path: ~/.local/share/virtualenvs
+          key: ${{ runner.os }}-pipenv-${{ hashFiles('**/Pipfile.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pipenv-
+      - name: Install dependencies
+        if: steps.cache-pipenv.outputs.cache-hit != 'true'
+        run: |
+          python -m pip install pipenv
+      - name: Install packages with pipenv
+        run: |
+          pipenv install
+      - name: Analysing the code with pylint
+        run: |
+          export PYTHONPATH=$PYTHONPATH:/home/runner/work/Web-app-python/Web-app-python/utils:/home/runner/work/Web-app-python/Web-app-python/generate_data
+          pipenv run pylint --rcfile=pylint.cfg $(git ls-files '*.py') -s true --fail-under=10
+      - name: Now running Pytest
+        run: |
+          export PYTHONPATH=$PYTHONPATH:/home/runner/work/Web-app-python/Web-app-python/utils:/home/runner/work/Web-app-python/Web-app-python/generate_data
+          pipenv run pytest
