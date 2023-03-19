@@ -120,13 +120,12 @@ def main():
             verboseprint(
                 f'Successfully generated the {transport_type}.csv file')
             log(f'Successfully generated the {transport_type}.csv file', 'INFO', logger)
-
-            return True
-
-        verboseprint(
-            f'Failed to generate the {transport_type}.csv file')
-        log(f'Failed to generate the {transport_type}.csv file', 'ERROR', logger)
-        return False
+        else:
+            verboseprint(
+                f'Failed to generate the {transport_type}.csv file')
+            log(f'Failed to generate the {transport_type}.csv file', 'ERROR', logger)
+            return False
+    return True
 
 
 def check_args(args=None) -> Tuple[str, str, str, bool, str, bool, bool, bool, bool]:
