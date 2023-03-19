@@ -13,4 +13,9 @@ ENV PYTHONPATH=/app/generate_data:/app/utils:
 
 # Install dependencies
 COPY **/Pipfile* ./
-RUN cd /app && pipenv install
+RUN cd /app && pipenv install --system --deploy \
+    && pip install --upgrade pip
+
+CMD pipenv run pylint --rcfile=pylint.cfg $(git ls-files '*.py') -s true --fail-under=10 && \
+    pipenv run pytest
+
