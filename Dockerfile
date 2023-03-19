@@ -13,9 +13,9 @@ ENV PYTHONPATH=/app/generate_data:/app/utils:
 
 # Install dependencies
 COPY **/Pipfile* ./
-RUN cd /app
-RUN pipenv install
+RUN cd /app && pipenv install --system --deploy \
+    && pip install --upgrade pip
 
-# Set the command to run when the container is started
-CMD pipenv run pylint --rcfile=pylint.cfg /app/*.py -s true --fail-under=10 && \
+CMD pipenv run pylint --rcfile=pylint.cfg $(git ls-files '*.py') -s true --fail-under=10 && \
     pipenv run pytest
+
