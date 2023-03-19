@@ -28,7 +28,7 @@ def test_csv_data_no_args_fail() -> None:
     assert excinfo.value.code == 2
 
 
-# def test_csv_data_on_aws_pass() -> None:
-#     # This should pass as the type is correct
-#     sys.argv = ['main.py', '-type', 'flights', '-v', '-onaws', '-u', 'webapp', '-b', 'web-app-python']
-#     assert main() is True
+def test_csv_data_on_aws_pass() -> None:
+    # This should pass as the type is correct
+    sys.argv = ['main.py', '-type', 'flights', '-v', '-onaws', '-u', 'webapp', '-b', 'web-app-python']
+    assert main() is True
