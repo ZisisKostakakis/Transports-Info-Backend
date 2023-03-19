@@ -16,6 +16,7 @@ gunicorn = "*"
 boto3 = "*"
 pylint = "*"
 pytest = "*"
+werkzeug = "*"
 
 [dev-packages]
 autopep8 = "*"
