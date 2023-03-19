@@ -9,10 +9,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
+
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v1
       with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID  }}
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: ${{ secrets.AWS_REGION }}
 
@@ -20,10 +21,15 @@ jobs:
       id: login-ecr
       uses: aws-actions/amazon-ecr-login@v1
 
-    # Not specifying ECR Repository or image tag as we only have one
-    - name: Docker pull and run from Amazon ECR
+    - name: Install dependencies and run pipenv run commands
       env:
         ECR_REGISTRY: ${{ secrets.AWS_REGISTRY_URL }}
       run: |
-        docker pull $ECR_REGISTRY
-        docker run $ECR_REGISTRY
+        # Run Docker container to install dependencies
+        docker run --rm $ECR_REGISTRY pipenv install --system --deploy --ignore-pipfile
+
+        # Run PyLint
+        docker run --rm -v $PWD:/app $ECR_REGISTRY pipenv run pylint --rcfile=pylint.cfg $(git ls-files '*.py') -s true --fail-under=10
+
+        # Run pytest
+        docker run --rm -v $PWD:/app $ECR_REGISTRY pipenv run pytest
