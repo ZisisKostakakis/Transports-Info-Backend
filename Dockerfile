@@ -13,6 +13,6 @@ ENV PYTHONPATH=/app/generate_data:/app/utils:
 
 # Install dependencies
 COPY **/Pipfile* ./
-RUN cd /app && pipenv install
+RUN cd /app
 
 CMD ["tail", "-f", "/dev/null"]
