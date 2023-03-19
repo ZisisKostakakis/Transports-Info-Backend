@@ -35,6 +35,9 @@ jobs:
       - name: Install packages with pipenv
         run: |
           pipenv install
+      - name: Generate CSV files to test
+        run: |
+          pipenv run python generate_data/generate_csv_data.py -g 10 -type flights bus train -v -o
       - name: Analysing the code with pylint
         run: |
           export PYTHONPATH=$PYTHONPATH:/home/runner/work/Web-app-python/Web-app-python/utils:/home/runner/work/Web-app-python/Web-app-python/generate_data
