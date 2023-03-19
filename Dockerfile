@@ -4,8 +4,7 @@ WORKDIR /app
 
 # COPY . /app
 
-RUN apt-get update && \
-    apt-get install -y git
+RUN apt-get install -y git
 
 # Clone the repository
 RUN git clone https://github.com/ZisisKostakakis/Web-app-python.git /app
