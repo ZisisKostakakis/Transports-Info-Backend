@@ -28,6 +28,8 @@ jobs:
         # Run Docker container to install dependencies
         docker run --rm $ECR_REGISTRY pipenv install --system --deploy --ignore-pipfile
 
+        pipenv check
+
         # Generate the csv files before pytesting
         docker run --rm -v $PWD:/app $ECR_REGISTRY pipenv run python generate_data/generate_csv_data.py -g 10 -type flights bus train -v -o
 
