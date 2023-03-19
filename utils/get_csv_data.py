@@ -53,7 +53,7 @@ def get_csv_data(transportation_type: str, aws_profile: str,
         return False, df
     except Exception as e:
         verboseprint(f'Error in get_csv_data() - {e}')
-        log(f'Error in get_csv_data() - {e}', 'ERROR', logger) 
+        log(f'Error in get_csv_data() - {e}', 'ERROR', logger)
         return False, df
 
 
