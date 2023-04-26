@@ -10,9 +10,13 @@ from generate_csv_data import generate_csv_data
 from get_csv_data import get_csv_data
 from common_funcs import get_verbose_logger
 load_dotenv()
-app = Flask(__name__)
+server = Flask(__name__)
 
-@app.route('/<data_type>')
+@server.route('/')
+def home():
+    return 'Welcome to the transport data API!'
+
+@server.route('/<data_type>')
 def get_transport_data(data_type):
     if data_type == 'flights':
         return get_transport_list(FLIGHTS).to_json()
@@ -44,4 +48,4 @@ if __name__ == '__main__':
     global log
     global logger
     verboseprint, log, logger = get_verbose_logger(True, False)
-    app.run(debug=False, port=5001, host='0.0.0.0')
+    server.run(debug=False, port=5001, host='0.0.0.0')
