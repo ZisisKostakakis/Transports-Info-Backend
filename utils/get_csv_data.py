@@ -40,7 +40,7 @@ def get_csv_data(transportation_type: str, aws_profile: str,
                 obj = read_object_from_s3(
                     bucket, f'{transportation_type}.csv', s3_client)
                 df = handle_df(obj)
-                verboseprint(df)
+                # verboseprint(df)
                 return True, df
         elif check_local_exist(transportation_type):
             verboseprint(

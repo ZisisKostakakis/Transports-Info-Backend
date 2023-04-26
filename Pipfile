@@ -17,6 +17,7 @@ boto3 = "*"
 pylint = "*"
 pytest = "*"
 werkzeug = "*"
+python-dotenv = "*"
 
 [dev-packages]
 autopep8 = "*"
