@@ -11,22 +11,25 @@ from get_csv_data import get_csv_data
 from common_funcs import get_verbose_logger
 load_dotenv()
 server = Flask(__name__)
-
+global verboseprint
+global log
+global logger
 @server.route('/')
 def home():
     return 'Welcome to the transport data API!'
 
 @server.route('/<data_type>')
 def get_transport_data(data_type):
+    verboseprint, log, logger = get_verbose_logger(True, False)
     if data_type == 'flights':
-        return get_transport_list(FLIGHTS).to_json()
+        return get_transport_list(FLIGHTS,verboseprint, log, logger).to_json()
     if data_type == 'bus':
-        return get_transport_list(BUS).to_json()
+        return get_transport_list(BUS,verboseprint, log, logger).to_json()
     if data_type == 'train':
-        return get_transport_list(TRAIN).to_json()
+        return get_transport_list(TRAIN,verboseprint, log, logger).to_json()
     return 'Invalid data type'
 
-def get_transport_list(transportation_type):
+def get_transport_list(transportation_type, verboseprint, log, logger):
     ttype = str(transportation_type)
     try:
         success, transport_list = get_csv_data(
@@ -44,8 +47,4 @@ def get_transport_list(transportation_type):
         return get_csv_data(ttype, aws_profile=str(os.environ.get('AWS_PROFILE')), on_aws=True, bucket=str(os.environ.get('AWS_BUCKET')), verboseprint=verboseprint, log=log, logger=logger)[1]
 
 if __name__ == '__main__':
-    global verboseprint
-    global log
-    global logger
-    verboseprint, log, logger = get_verbose_logger(True, False)
     server.run(debug=False, port=5000, host='0.0.0.0')
