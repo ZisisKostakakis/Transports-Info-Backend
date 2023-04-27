@@ -48,4 +48,4 @@ if __name__ == '__main__':
     global log
     global logger
     verboseprint, log, logger = get_verbose_logger(True, False)
-    server.run(debug=False, port=5001, host='0.0.0.0')
+    server.run(debug=False, port=5000, host='0.0.0.0')
