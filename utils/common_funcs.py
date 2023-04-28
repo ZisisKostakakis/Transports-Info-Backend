@@ -49,6 +49,13 @@ def get_verbose(parser: argparse.ArgumentParser):
         default=False,
         action='store_true')
 
+def generate_json_file(parser: argparse.ArgumentParser):
+    return parser.add_argument(
+        "-j", "--json",
+        help="Generate JSON file for S3",
+        required=False,
+        default=False,
+        action='store_true')
 
 def get_transportation_type(parser: argparse.ArgumentParser):
     return parser.add_argument(

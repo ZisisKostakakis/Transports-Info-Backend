@@ -1,6 +1,7 @@
 **.DS_Store
 **/.vscode/
 **.env
+**.json
 generate_data/flights.csv
 generate_data/bus.csv
 generate_data/train.csv
