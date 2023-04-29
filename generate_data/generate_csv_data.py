@@ -14,10 +14,11 @@ from common_funcs import get_verbose_logger, get_s3_client, write_object_to_s3, 
 transportation_type_list = [FLIGHTS, BUS, TRAIN]
 
 
-def populate_df(generation_number: int, transportation_type: str) -> pd.DataFrame:
+def populate_df(generation_number: int, transportation_type: str) -> Tuple[pd.DataFrame, str]:
     # TODO: Improve this function so that it can generate better random data
     fake = Faker()
     type_number = f'{transportation_type}_number'
+    letter = type_number[0].upper()
     rows = []
     header = [type_number, 'from_Country', 'to_Country',
               'from_city', 'to_city',
@@ -33,7 +34,7 @@ def populate_df(generation_number: int, transportation_type: str) -> pd.DataFram
         data['to_city'] = fake.city()
         data['from_date'] = fake.date_this_decade().strftime('%Y-%m-%d')
         data['to_date'] = fake.date_this_decade().strftime('%Y-%m-%d')
-        data['flight_number'] = str(fake.numerify(text='F###'))
+        data[type_number] = str(fake.numerify(text=f'{letter}###'))
         data['departure'] = fake.time(pattern='%H:%M')
         data['arrival'] = fake.time(pattern='%H:%M')
         data['economy'] = fake.random_int(min=100, max=1000, step=100)
@@ -42,14 +43,15 @@ def populate_df(generation_number: int, transportation_type: str) -> pd.DataFram
         data['first_class'] = fake.random_int(
             min=2000, max=3000, step=100)
 
-        rows.append([data['flight_number'], data['from_country'], data['to_country'],
+        rows.append([data[type_number], data['from_country'], data['to_country'],
                      data['from_city'], data['to_city'], data['from_date'], data['to_date'],
                      data['departure'], data['arrival'], data['economy'], data['business'], data['first_class']])
-    return pd.DataFrame(rows, columns=header)
+    return pd.DataFrame(rows, columns=header), type_number
 
 
-def generate_json(df):
-    json = df.to_json(orient='index')
+def generate_json(df: pd.DataFrame, type_number: str):
+    json = df.set_index(type_number).to_json(
+        orient='index')
     return json
 
 
@@ -62,7 +64,8 @@ def generate_csv_data(generation_number: int, transportation_type: str, aws_cred
             if not transport_in_list:
                 return False
 
-            df = populate_df(generation_number, transportation_type)
+            df, type_number = populate_df(
+                generation_number, transportation_type)
 
             if not on_aws and not on_ddb:
                 if not os.path.exists(DATA_DIRECTORY):
@@ -73,7 +76,7 @@ def generate_csv_data(generation_number: int, transportation_type: str, aws_cred
                                        f'{transportation_type}.csv'), index=False)
                 if json:
                     with open(os.path.join(DATA_DIRECTORY, f'json-{transportation_type}.json'), 'w', encoding='utf-8') as f:
-                        f.write(generate_json(df))
+                        f.write(generate_json(df, type_number))
             else:
                 if on_aws:
                     write_object_to_s3(bucket, f'{transportation_type}.csv', df.to_csv(
@@ -83,7 +86,7 @@ def generate_csv_data(generation_number: int, transportation_type: str, aws_cred
                                      f'webapp-{transportation_type}', df)
                 if json:
                     write_object_to_s3(
-                        bucket, f'json-{transportation_type}.json', generate_json(df),  get_s3_client(aws_creds))
+                        bucket, f'json-{transportation_type}.json', generate_json(df, type_number),  get_s3_client(aws_creds))
 
         except Exception as error:
             verboseprint(
