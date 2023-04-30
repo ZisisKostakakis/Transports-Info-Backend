@@ -12,18 +12,20 @@ jobs:
         python-version: ["3.9"]
     steps:
       - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '16'
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v3
         with:
           python-version: ${{ matrix.python-version }}
 
       - name: Cache pipenv installation
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ~/.local/share/virtualenvs
           key: ${{ runner.os }}-pipenv-${{ hashFiles('**/Pipfile.lock') }}
           restore-keys: ${{ runner.os }}-pipenv-
-          node-version: '16'
 
       - name: Install dependencies - if cache is not found
         if: steps.cache-pipenv.outputs.cache-hit != 'true'
@@ -37,6 +39,6 @@ jobs:
       - name: Export PYTHONPATH - Generate csv files - Run pylinter - Run pytest
         run: |
           export PYTHONPATH=$PYTHONPATH:/home/runner/work/Web-app-python/Web-app-python/utils:/home/runner/work/Web-app-python/Web-app-python/generate_data
-          pipenv run python generate_data/generate_csv_data.py -g 10 -type flights bus train -v -o
+          pipenv run python generate_data/generate_csv_data.py -g 10 -type flights bus train -v -o -j
           pipenv run pylint --rcfile=pylint.cfg $(git ls-files '*.py') -s true --fail-under=10
           pipenv run pytest

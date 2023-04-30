@@ -34,7 +34,7 @@ def populate_df(generation_number: int, transportation_type: str) -> Tuple[pd.Da
         data['to_city'] = fake.city()
         data['from_date'] = fake.date_this_decade().strftime('%Y-%m-%d')
         data['to_date'] = fake.date_this_decade().strftime('%Y-%m-%d')
-        data[type_number] = str(fake.numerify(text=f'{letter}###'))
+        data[type_number] = str(fake.numerify(text=f'{letter}######'))
         data['departure'] = fake.time(pattern='%H:%M')
         data['arrival'] = fake.time(pattern='%H:%M')
         data['economy'] = fake.random_int(min=100, max=1000, step=100)
@@ -75,7 +75,7 @@ def generate_csv_data(generation_number: int, transportation_type: str, aws_cred
                 df.to_csv(os.path.join(DATA_DIRECTORY,
                                        f'{transportation_type}.csv'), index=False)
                 if json:
-                    with open(os.path.join(DATA_DIRECTORY, f'json-{transportation_type}.json'), 'w', encoding='utf-8') as f:
+                    with open(os.path.join(DATA_DIRECTORY, f'{transportation_type}.json'), 'w', encoding='utf-8') as f:
                         f.write(generate_json(df, type_number))
             else:
                 if on_aws:
@@ -86,7 +86,7 @@ def generate_csv_data(generation_number: int, transportation_type: str, aws_cred
                                      f'webapp-{transportation_type}', df)
                 if json:
                     write_object_to_s3(
-                        bucket, f'json-{transportation_type}.json', generate_json(df, type_number),  get_s3_client(aws_creds))
+                        bucket, f'{transportation_type}.json', generate_json(df, type_number),  get_s3_client(aws_creds))
 
         except Exception as error:
             verboseprint(
