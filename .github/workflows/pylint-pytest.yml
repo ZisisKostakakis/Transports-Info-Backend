@@ -23,6 +23,7 @@ jobs:
           path: ~/.local/share/virtualenvs
           key: ${{ runner.os }}-pipenv-${{ hashFiles('**/Pipfile.lock') }}
           restore-keys: ${{ runner.os }}-pipenv-
+          node-version: '16'
 
       - name: Install dependencies - if cache is not found
         if: steps.cache-pipenv.outputs.cache-hit != 'true'
