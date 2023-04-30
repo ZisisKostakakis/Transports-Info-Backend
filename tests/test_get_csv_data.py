@@ -1,8 +1,10 @@
 import sys
 import pytest
-from get_csv_data import main
+from get_data import main
 
 # The tests may fail if the csv files are not in the correct location!
+
+
 def test_csv_data_type_pass() -> None:
     # This should pass as the type is correct
     sys.argv = ['main.py', '-type', 'flights', '-v']
