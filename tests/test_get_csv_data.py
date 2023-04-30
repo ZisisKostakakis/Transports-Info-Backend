@@ -1,11 +1,13 @@
 import sys
 import pytest
-from get_csv_data import main
+from get_data import main
 
 # The tests may fail if the csv files are not in the correct location!
+
+
 def test_csv_data_type_pass() -> None:
     # This should pass as the type is correct
-    sys.argv = ['main.py', '-type', 'flights', '-v']
+    sys.argv = ['main.py', '-type', 'flights', '-v', '-j']
     assert main() is True
 
 # def test_csv_data_type_multiple_pass() -> None:
@@ -16,7 +18,7 @@ def test_csv_data_type_pass() -> None:
 
 def test_csv_data_type_fail() -> None:
     # This should fail as the type is wrong
-    sys.argv = ['main.py', '-type', 'wrong_type', '-v']
+    sys.argv = ['main.py', '-type', 'wrong_type', '-v', '-j']
     assert main() is False
 
 
