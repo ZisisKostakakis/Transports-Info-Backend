@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import argparse
+import json
+import os
 from typing import Tuple
 import logging
 import boto3
 import pandas as pd
-from common_vars import transportation_type_list
+from common_vars import transportation_type_list, DATA_DIRECTORY
 
 
 def get_verbose_logger(verbose: bool, logger_arg: bool):
@@ -49,6 +51,7 @@ def get_verbose(parser: argparse.ArgumentParser):
         default=False,
         action='store_true')
 
+
 def generate_json_file(parser: argparse.ArgumentParser):
     return parser.add_argument(
         "-j", "--json",
@@ -56,6 +59,7 @@ def generate_json_file(parser: argparse.ArgumentParser):
         required=False,
         default=False,
         action='store_true')
+
 
 def get_transportation_type(parser: argparse.ArgumentParser):
     return parser.add_argument(
@@ -244,3 +248,45 @@ def transport_in_list(value: str) -> bool:
         print(msg)
         return False
     return True
+
+
+def get_json_data(transportation_type: str, aws_profile: str, s3_client,
+                  on_aws: bool, bucket: str, verboseprint, log, logger) -> Tuple[bool, dict]:
+
+    json_data = {}
+    try:
+        if not transport_in_list:
+            return False, json_data
+        if on_aws:
+            if aws_profile == '':
+                s3_client = get_s3_client(aws_profile)
+            else:
+                s3_client = s3_client
+            if check_if_object_exists_in_s3(bucket, f'{transportation_type}.json', s3_client=s3_client):
+                verboseprint(
+                    f'Object {transportation_type}.json exists in S3, retrieving from S3...')
+                log(f'Object {transportation_type}.json exists in S3, retrieving from S3...', 'INFO', logger)
+                obj = read_object_from_s3(
+                    bucket, f'{transportation_type}.json', s3_client)
+                json_data = json.loads(obj)
+                verboseprint(json_data)
+                return True, json_data
+        elif check_local_exist(transportation_type):
+            verboseprint(
+                f'Object {transportation_type}.json exists locally, retrieving from local...')
+            log(f'Object {transportation_type}.json exists locally, retrieving from local...', 'INFO', logger)
+            with open(f'{DATA_DIRECTORY}{transportation_type}.json', encoding='utf-8') as json_file:
+                json_data = json.load(json_file)
+            verboseprint(json_data)
+            return True, json_data
+        return False, json_data
+    except Exception as e:
+        verboseprint(f'Error in get_json_data() - {e}')
+        log(f'Error in get_json_data() - {e}', 'ERROR', logger)
+        return False, json_data
+
+
+def check_local_exist(transportation_type: str) -> bool:
+    if os.path.exists(f'{DATA_DIRECTORY}{transportation_type}.csv'):
+        return True
+    return False
