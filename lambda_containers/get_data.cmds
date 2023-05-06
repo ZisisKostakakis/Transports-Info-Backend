@@ -1,0 +1,26 @@
+#!/bin/bash
+
+echo Number of parameters: $#
+if [ "$#" -lt 1 ]; then
+  echo "Usage: $0 region [pull]" >&2
+  echo "Second parameter pull is optional and used to rebuild docker with a --pull and a --no-cache"
+  exit 1
+fi
+
+region=$1
+build_ops=""
+
+if [ "$#" -gt 1 ]; then
+  if [ "$2" == "pull" ]; then
+    build_ops="--pull --no-cache"
+  fi
+fi
+
+cd "$(dirname "$0")" || exit
+
+aws ecr get-login-password --region $region --profile webapp| docker login --username AWS --password-stdin 663496448300.dkr.ecr.$region.amazonaws.com
+docker build $build_ops -f get_data.dockerfile -t webapp .
+docker tag webapp:latest 663496448300.dkr.ecr.$region.amazonaws.com/webapp:latest
+docker push 663496448300.dkr.ecr.$region.amazonaws.com/webapp:latest
+
+
