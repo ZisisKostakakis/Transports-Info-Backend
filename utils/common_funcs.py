@@ -260,8 +260,6 @@ def get_json_data(transportation_type: str, aws_profile: str, s3_client,
         if on_aws:
             if aws_profile == '':
                 s3_client = get_s3_client(aws_profile)
-            else:
-                s3_client = s3_client
             if check_if_object_exists_in_s3(bucket, f'{transportation_type}.json', s3_client=s3_client):
                 verboseprint(
                     f'Object {transportation_type}.json exists in S3, retrieving from S3...')

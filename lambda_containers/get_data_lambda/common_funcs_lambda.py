@@ -3,7 +3,6 @@ import os
 from typing import Tuple
 import logging
 from common_vars_lambda import transportation_type_list, DATA_DIRECTORY
-from common_vars_lambda import transportation_type_list, DATA_DIRECTORY
 
 
 def get_verbose_logger(verbose: bool, logger_arg: bool):
@@ -38,9 +37,6 @@ def get_json_data(transportation_type: str, aws_profile: str, s3_client,
         if not transport_in_list:
             return False, json_data
         if on_aws:
-
-            s3_client = s3_client
-            print(f's3_client = {s3_client}')
             if check_if_object_exists_in_s3(bucket, f'{transportation_type}.json', s3_client=s3_client):
                 verboseprint(
                     f'Object {transportation_type}.json exists in S3, retrieving from S3...')
