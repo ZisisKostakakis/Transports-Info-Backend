@@ -8,7 +8,9 @@ import logging
 import boto3
 import pandas as pd
 from common_vars import transportation_type_list, DATA_DIRECTORY
-
+from mypy_boto3_s3.client import S3Client
+from mypy_boto3_dynamodb.client import DynamoDBClient
+from boto3.session import Session
 
 def get_verbose_logger(verbose: bool, logger_arg: bool):
     verboseprint = print if verbose else lambda *a, **k: None
@@ -129,7 +131,7 @@ def get_aws_creds(aws_creds: str) -> Tuple[str, str]:
     return aws_access_key_id, aws_secret_access_key
 
 
-def get_boto3_session(aws_creds: str) -> boto3.Session:
+def get_boto3_session(aws_creds: str) -> Session:
     """Get boto3 session"""
     aws_access_key_id, aws_secret_access_key = get_aws_creds(
         aws_creds=aws_creds)
@@ -141,7 +143,7 @@ def get_boto3_session(aws_creds: str) -> boto3.Session:
     return session
 
 
-def get_s3_client(aws_creds: str):
+def get_s3_client(aws_creds: str) -> S3Client:
     """Get boto3 s3 client"""
     session = get_boto3_session(aws_creds=aws_creds)
     s3 = session.client('s3')
@@ -160,7 +162,7 @@ def write_object_to_s3(bucket_name: str, object_name: str, data: str, s3_client)
     s3_client.put_object(Bucket=bucket_name, Key=object_name, Body=data)
 
 
-def get_ddb_client(aws_creds: str):
+def get_ddb_client(aws_creds: str) -> DynamoDBClient:
     """Get boto3 DynamoDB client"""
     session = get_boto3_session(aws_creds=aws_creds)
     ddb = session.client('dynamodb')
@@ -219,7 +221,7 @@ def check_if_object_exists_in_both_s3_and_ddb(bucket_name: str, object_name: str
         return False
 
 
-def get_list_of_buckets(s3_client):
+def get_list_of_buckets(s3_client) -> dict:
     """Get list of buckets"""
     response = s3_client.list_buckets()
     return response

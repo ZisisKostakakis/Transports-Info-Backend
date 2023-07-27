@@ -18,6 +18,7 @@ pylint = "*"
 pytest = "*"
 werkzeug = "*"
 python-dotenv = "*"
+boto3-stubs = {extras = ["essential"], version = "*"}
 
 [dev-packages]
 autopep8 = "*"

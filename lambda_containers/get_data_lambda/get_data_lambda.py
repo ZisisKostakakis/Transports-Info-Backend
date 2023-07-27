@@ -16,8 +16,6 @@ def get_data(transportation_type):
 
 
 def lambda_handler(event, context):
-    # if 'transportation_type' in event['queryStringParameters']:
-    # transportation_type = event['queryStringParameters']['transportation_type']
     if 'transportation_type' in event:
         transportation_type = event['transportation_type']
     else:
