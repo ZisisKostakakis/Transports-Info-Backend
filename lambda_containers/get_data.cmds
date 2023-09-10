@@ -9,6 +9,7 @@ fi
 
 region=$1
 build_ops=""
+account_id=$3
 
 if [ "$#" -gt 1 ]; then
   if [ "$2" == "pull" ]; then
@@ -18,9 +19,9 @@ fi
 
 cd "$(dirname "$0")" || exit
 
-aws ecr get-login-password --region $region --profile webapp| docker login --username AWS --password-stdin 663496448300.dkr.ecr.$region.amazonaws.com
+aws ecr get-login-password --region $region --profile webapp| docker login --username AWS --password-stdin $account_id.dkr.ecr.$region.amazonaws.com
 docker build $build_ops -f get_data.dockerfile -t webapp .
-docker tag webapp:latest 663496448300.dkr.ecr.$region.amazonaws.com/webapp:latest
-docker push 663496448300.dkr.ecr.$region.amazonaws.com/webapp:latest
+docker tag webapp:latest $account_id.dkr.ecr.$region.amazonaws.com/webapp:latest
+docker push $account_id.dkr.ecr.$region.amazonaws.com/webapp:latest
 
 
